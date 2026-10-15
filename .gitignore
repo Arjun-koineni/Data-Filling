@@ -12,3 +12,6 @@ desktop.ini
 # Local scratch and logs
 *.log
 scratch/
+
+.vercel
+.env*
