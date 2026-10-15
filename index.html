@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <meta name="theme-color" content="#0d1117" />
-  <title>Arjun Traders - Trip Sheet</title>
+  <meta name="theme-color" content="#0c0e14" />
+  <title>Arjun Traders - Trip Sheet & Vehicle Sale Report</title>
   <!-- Supabase JS v2 pinned -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 
@@ -38,6 +38,7 @@
       --fs-xs: 13px;
       --fs-lg: 22px;
       --fs-xl: 28px;
+      --app-max-width: 580px;
     }
 
     * {
@@ -54,12 +55,30 @@
       color: var(--txt);
       min-height: 100vh;
       min-height: 100dvh;
-      line-height: 1.4;
+      line-height: 1.45;
       overscroll-behavior: none;
     }
 
+    /* Custom Sleek Scrollbar */
+    ::-webkit-scrollbar {
+      width: 7px;
+      height: 7px;
+    }
+    ::-webkit-scrollbar-track {
+      background: var(--bg);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: var(--bdr-light);
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--acc);
+    }
+
+    /* Main Container (Responsive) */
     #app {
-      max-width: 580px;
+      width: 100%;
+      max-width: var(--app-max-width);
       margin: 0 auto;
       min-height: 100vh;
       min-height: 100dvh;
@@ -67,6 +86,116 @@
       flex-direction: column;
       position: relative;
       background: var(--bg);
+      transition: max-width 0.2s ease;
+    }
+
+    /* Responsive Breakpoints: Desktop & Tablet */
+    @media (min-width: 768px) {
+      :root {
+        --app-max-width: 1100px;
+        --fs-base: 17px;
+      }
+      body {
+        background-color: #080a0f;
+      }
+      #app {
+        box-shadow: 0 0 50px rgba(0, 0, 0, 0.6);
+        border-left: 1px solid #1a1e2d;
+        border-right: 1px solid #1a1e2d;
+      }
+    }
+
+    @media (min-width: 1200px) {
+      :root {
+        --app-max-width: 1240px;
+      }
+    }
+
+    /* Desktop Navigation Header (Hidden on Mobile) */
+    .desktop-header {
+      display: none;
+      position: sticky;
+      top: 0;
+      z-index: 60;
+      background: #111420;
+      border-bottom: 1px solid var(--bdr);
+      padding: 12px 24px;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+    .dh-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      cursor: pointer;
+    }
+    .dh-logo {
+      font-size: 32px;
+      line-height: 1;
+    }
+    .dh-title {
+      font-size: 20px;
+      font-weight: 800;
+      letter-spacing: -0.3px;
+      color: #ffffff;
+    }
+    .dh-sub {
+      font-size: 12px;
+      color: var(--txt-mut);
+      font-weight: 600;
+    }
+    .dh-nav {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--card-bg);
+      border: 1px solid var(--bdr);
+      border-radius: 30px;
+      padding: 4px 6px;
+    }
+    .dh-link {
+      background: transparent;
+      border: none;
+      color: var(--txt-mut);
+      font-size: 14px;
+      font-weight: 700;
+      padding: 7px 14px;
+      border-radius: 20px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+    }
+    .dh-link:hover {
+      color: #ffffff;
+      background: var(--card-sub);
+    }
+    .dh-link.active {
+      background: var(--acc);
+      color: #ffffff;
+      box-shadow: 0 2px 8px rgba(59, 130, 246, 0.4);
+    }
+    .dh-right {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .dh-user-info {
+      text-align: right;
+    }
+    .dh-user-name {
+      display: block;
+      font-size: 14px;
+      font-weight: 700;
+      color: #ffffff;
+    }
+
+    @media (min-width: 768px) {
+      .desktop-header {
+        display: flex;
+      }
     }
 
     /* Screen Management */
@@ -75,7 +204,7 @@
       flex-direction: column;
       min-height: 100vh;
       min-height: 100dvh;
-      padding-bottom: 70px; /* Space for bottom navigation */
+      padding-bottom: 74px; /* Space for bottom mobile nav */
     }
     .screen.active {
       display: flex;
@@ -84,14 +213,27 @@
       padding-bottom: 0;
     }
 
+    @media (min-width: 768px) {
+      .screen {
+        padding-bottom: 24px; /* Desktop does not have bottom nav */
+        min-height: calc(100vh - 65px);
+        min-height: calc(100dvh - 65px);
+      }
+    }
+
     .scroll-body {
       flex: 1;
       overflow-y: auto;
       padding: 14px 16px;
       -webkit-overflow-scrolling: touch;
     }
+    @media (min-width: 768px) {
+      .scroll-body {
+        padding: 20px 24px;
+      }
+    }
 
-    /* Top Bar */
+    /* Top Bar (Mobile-first, adapts on Desktop) */
     .topbar {
       position: sticky;
       top: 0;
@@ -137,11 +279,22 @@
       flex-shrink: 0;
       transition: background 0.15s;
     }
-    .topbar-btn:active {
+    .topbar-btn:hover, .topbar-btn:active {
       background: var(--card-sub);
     }
 
-    /* Bottom Navigation / Menu Bar */
+    @media (min-width: 768px) {
+      /* On desktop, screen topbar complements desktop header */
+      .topbar {
+        padding: 12px 24px;
+        background: #131724;
+      }
+      #home-logout-btn-mobile {
+        display: none; /* Handled by desktop header */
+      }
+    }
+
+    /* Mobile Bottom Navigation Bar */
     .bottom-menu {
       position: fixed;
       bottom: 0;
@@ -158,6 +311,12 @@
       z-index: 50;
       padding: 0 4px;
     }
+    @media (min-width: 768px) {
+      .bottom-menu {
+        display: none !important; /* Hide on desktop */
+      }
+    }
+
     .menu-item {
       display: flex;
       flex-direction: column;
@@ -185,22 +344,25 @@
       transform: scale(1.1);
     }
 
-    /* Buttons */
+    /* Standard Interactive Buttons */
     .btn {
       display: inline-flex;
       align-items: center;
       justify-content: center;
       gap: 8px;
-      min-height: 50px;
-      padding: 10px 20px;
+      min-height: 48px;
+      padding: 10px 18px;
       border-radius: var(--radius);
       border: none;
       cursor: pointer;
       font-size: var(--fs-base);
       font-weight: 700;
       text-align: center;
-      transition: transform 0.1s, opacity 0.15s;
+      transition: transform 0.1s, opacity 0.15s, background 0.15s;
       width: 100%;
+    }
+    .btn:hover {
+      opacity: 0.95;
     }
     .btn:active {
       transform: scale(0.98);
@@ -211,34 +373,16 @@
       cursor: not-allowed;
       transform: none;
     }
-    .btn-primary {
-      background: var(--acc);
-      color: #fff;
-    }
-    .btn-success {
-      background: var(--grn);
-      color: #fff;
-    }
-    .btn-danger {
-      background: var(--red);
-      color: #fff;
-    }
-    .btn-outline {
-      background: transparent;
-      border: 1.5px solid var(--bdr-light);
-      color: var(--txt);
-    }
-    .btn-ghost {
-      background: var(--card-sub);
-      color: var(--txt);
-    }
-    .btn-white {
-      background: #ffffff;
-      color: #0b0d13;
-    }
-    .btn-white:active {
-      background: #e2e8f0;
-    }
+    .btn-primary { background: var(--acc); color: #fff; }
+    .btn-primary:hover { background: var(--acc-hover); }
+    .btn-success { background: var(--grn); color: #fff; }
+    .btn-danger { background: var(--red); color: #fff; }
+    .btn-outline { background: transparent; border: 1.5px solid var(--bdr-light); color: var(--txt); }
+    .btn-outline:hover { background: var(--card-sub); }
+    .btn-ghost { background: var(--card-sub); color: var(--txt); }
+    .btn-ghost:hover { background: #232b3f; }
+    .btn-white { background: #ffffff; color: #0b0d13; }
+    .btn-white:hover { background: #e5e7eb; }
     .btn-sm {
       min-height: 38px;
       height: 38px;
@@ -261,7 +405,7 @@
       background: var(--card-bg);
       border: 1px solid var(--bdr);
       border-radius: var(--radius);
-      padding: 14px;
+      padding: 16px;
       margin-bottom: 12px;
     }
     .card-title {
@@ -289,7 +433,7 @@
     .badge-none { background: #1a1e2e; color: #64748b; }
     .badge-warning { background: var(--amber-bg); color: var(--amber-text); }
 
-    /* Form Inputs */
+    /* Form Controls */
     .fg {
       margin-bottom: 12px;
     }
@@ -310,49 +454,63 @@
       border-radius: var(--radius-sm);
       padding: 10px 14px;
       outline: none;
-      transition: border-color 0.15s;
+      transition: border-color 0.15s, box-shadow 0.15s;
     }
     input:focus, select:focus, textarea:focus {
       border-color: var(--acc);
+      box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
     }
     .row2 {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 10px;
+      gap: 12px;
     }
-    .row3 {
-      display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      gap: 8px;
+    @media (min-width: 768px) {
+      .row-desktop-3 {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 14px;
+      }
+      .row-desktop-4 {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 14px;
+      }
     }
 
-    /* Auto Cards on Home Screen */
+    /* Auto Cards on Home Screen (Responsive Grid) */
     .auto-grid {
       display: flex;
       flex-direction: column;
       gap: 10px;
       margin-bottom: 16px;
     }
+    @media (min-width: 768px) {
+      .auto-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 14px;
+      }
+    }
+
     .auto-card {
       background: var(--card-bg);
       border: 1.5px solid var(--bdr);
       border-radius: var(--radius);
-      padding: 14px 16px;
+      padding: 16px;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      transition: border-color 0.15s, background 0.15s;
+      transition: border-color 0.15s, background 0.15s, transform 0.1s;
     }
-    .auto-card:active {
+    .auto-card:hover {
       background: var(--card-sub);
+      border-color: var(--bdr-light);
+      transform: translateY(-1px);
     }
-    .auto-card.st-out {
-      border-color: #3b82f6;
-    }
-    .auto-card.st-returned {
-      border-color: #22c55e;
-    }
+    .auto-card.st-out { border-color: #3b82f6; }
+    .auto-card.st-returned { border-color: #22c55e; }
     .auto-card-name {
       font-size: var(--fs-lg);
       font-weight: 700;
@@ -360,22 +518,32 @@
     .auto-card-driver {
       font-size: var(--fs-sm);
       color: var(--txt-mut);
-      margin-top: 2px;
+      margin-top: 3px;
     }
 
-    /* Stats Overview */
+    /* Stats Overview (Responsive) */
     .stats-row {
       display: grid;
       grid-template-columns: 1fr 1fr 1fr;
       gap: 10px;
       margin-bottom: 16px;
     }
+    @media (min-width: 768px) {
+      .stats-row {
+        gap: 16px;
+        margin-bottom: 24px;
+      }
+    }
     .stat-box {
       background: var(--card-bg);
       border: 1px solid var(--bdr);
       border-radius: var(--radius);
-      padding: 12px 10px;
+      padding: 14px 12px;
       text-align: center;
+      transition: border-color 0.15s;
+    }
+    .stat-box:hover {
+      border-color: var(--bdr-light);
     }
     .stat-num {
       font-size: var(--fs-xl);
@@ -393,8 +561,8 @@
     /* Search & Add Bar Component */
     .search-add-bar {
       display: flex;
-      gap: 8px;
-      margin-bottom: 12px;
+      gap: 10px;
+      margin-bottom: 14px;
       align-items: center;
     }
     .search-input-wrap {
@@ -402,29 +570,47 @@
       position: relative;
     }
     .search-input-wrap input {
-      height: 46px;
-      padding-left: 38px;
-      padding-right: 12px;
+      height: 48px;
+      padding-left: 42px;
+      padding-right: 14px;
       font-size: var(--fs-sm);
       border-radius: var(--radius-sm);
     }
     .search-input-wrap .search-icon {
       position: absolute;
-      left: 12px;
+      left: 14px;
       top: 50%;
       transform: translateY(-50%);
       color: var(--txt-dim);
-      font-size: 16px;
+      font-size: 18px;
       pointer-events: none;
     }
+    .search-shortcut-hint {
+      display: none;
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 11px;
+      color: var(--txt-dim);
+      background: var(--bdr);
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+    @media (min-width: 768px) {
+      .search-shortcut-hint {
+        display: block;
+      }
+    }
+
     .add-action-btn {
-      width: 46px;
-      height: 46px;
+      width: 48px;
+      height: 48px;
       background: var(--acc);
       color: #fff;
       border: none;
       border-radius: var(--radius-sm);
-      font-size: 26px;
+      font-size: 28px;
       font-weight: 700;
       display: flex;
       align-items: center;
@@ -433,18 +619,16 @@
       flex-shrink: 0;
       transition: background 0.15s, transform 0.1s;
     }
-    .add-action-btn:active {
-      background: var(--acc-hover);
-      transform: scale(0.95);
-    }
+    .add-action-btn:hover { background: var(--acc-hover); }
+    .add-action-btn:active { transform: scale(0.95); }
 
     /* Tab switcher */
     .tab-pills {
       display: flex;
       background: var(--card-sub);
       border-radius: var(--radius-sm);
-      padding: 3px;
-      gap: 3px;
+      padding: 4px;
+      gap: 4px;
       margin-bottom: 14px;
     }
     .tab-pill {
@@ -454,15 +638,17 @@
       color: var(--txt-mut);
       font-size: var(--fs-sm);
       font-weight: 700;
-      padding: 8px 4px;
+      padding: 9px 8px;
       border-radius: 6px;
       cursor: pointer;
       text-align: center;
       transition: background 0.15s, color 0.15s;
     }
+    .tab-pill:hover { color: #ffffff; }
     .tab-pill.active {
       background: var(--acc);
       color: #ffffff;
+      box-shadow: 0 2px 8px rgba(59,130,246,0.3);
     }
 
     /* Data Table (Morning Load & Return) */
@@ -471,7 +657,7 @@
       border: 1px solid var(--bdr);
       border-radius: var(--radius);
       overflow: hidden;
-      margin-bottom: 12px;
+      margin-bottom: 14px;
     }
     .table-header {
       display: flex;
@@ -480,21 +666,21 @@
       font-size: var(--fs-xs);
       font-weight: 700;
       color: var(--txt-mut);
-      padding: 10px 12px;
+      padding: 11px 14px;
       text-transform: uppercase;
       letter-spacing: 0.5px;
     }
     .col-item { flex: 1; text-align: left; }
-    .col-cases { width: 70px; text-align: right; }
-    .col-val { width: 95px; text-align: right; }
-    .col-ret { width: 62px; text-align: right; }
-    .col-sale { width: 55px; text-align: right; color: var(--grn-text); }
-    .col-amt { width: 95px; text-align: right; color: var(--grn-text); }
+    .col-cases { width: 75px; text-align: right; }
+    .col-val { width: 105px; text-align: right; }
+    .col-ret { width: 68px; text-align: right; }
+    .col-sale { width: 60px; text-align: right; color: var(--grn-text); }
+    .col-amt { width: 105px; text-align: right; color: var(--grn-text); }
 
     .table-row {
       display: flex;
       align-items: center;
-      padding: 12px 12px;
+      padding: 12px 14px;
       border-bottom: 1px solid var(--bdr);
       cursor: pointer;
       transition: background 0.12s;
@@ -502,7 +688,7 @@
     .table-row:last-child {
       border-bottom: none;
     }
-    .table-row:active {
+    .table-row:hover {
       background: var(--card-sub);
     }
     .table-row.selected {
@@ -529,16 +715,16 @@
     .item-formula {
       font-size: 11px;
       color: var(--txt-dim);
-      margin-left: 4px;
+      margin-left: 5px;
     }
     .item-cases {
-      width: 70px;
+      width: 75px;
       text-align: right;
       font-size: var(--fs-base);
       font-weight: 700;
     }
     .item-val {
-      width: 95px;
+      width: 105px;
       text-align: right;
       font-size: var(--fs-sm);
       color: var(--txt-mut);
@@ -555,7 +741,7 @@
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.8px;
-      padding: 6px 12px;
+      padding: 7px 14px;
       border-bottom: 1px solid var(--bdr);
     }
 
@@ -564,7 +750,7 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 12px 14px;
+      padding: 13px 16px;
       background: var(--card-sub);
       border-top: 1px solid var(--bdr);
       font-weight: 700;
@@ -581,7 +767,7 @@
       color: var(--grn-text);
     }
 
-    /* Interactive Keypad (Matching Screenshot 1) */
+    /* Interactive Keypad (Responsive: Docked on Mobile, Floating/Docked on Desktop) */
     .keypad-dock {
       position: fixed;
       bottom: 0;
@@ -593,15 +779,34 @@
       border-top: 1px solid var(--bdr-light);
       box-shadow: 0 -8px 24px rgba(0,0,0,0.6);
       z-index: 100;
-      padding: 12px 14px 18px;
+      padding: 12px 16px 18px;
       border-radius: 18px 18px 0 0;
       display: none;
     }
+
+    /* Desktop Keypad Floating Card Style */
+    @media (min-width: 768px) {
+      .keypad-dock {
+        left: auto;
+        right: 28px;
+        bottom: 28px;
+        transform: none;
+        width: 350px;
+        border: 1.5px solid var(--bdr-light);
+        border-radius: 18px;
+        box-shadow: 0 12px 36px rgba(0,0,0,0.7);
+        backdrop-filter: blur(10px);
+      }
+      .keypad-spacer {
+        display: none !important; /* Not needed on desktop */
+      }
+    }
+
     .kp-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 6px;
+      margin-bottom: 8px;
     }
     .kp-item-title {
       font-size: var(--fs-sm);
@@ -619,6 +824,9 @@
       font-size: 20px;
       cursor: pointer;
       padding: 2px 6px;
+    }
+    .kp-close-btn:hover {
+      color: #ffffff;
     }
     .kp-display-box {
       background: var(--card-bg);
@@ -641,7 +849,6 @@
       color: var(--grn-text);
       font-weight: 700;
     }
-    /* 3-column phone layout */
     .kp-grid {
       display: grid;
       grid-template-columns: 1fr 1fr 1fr;
@@ -649,7 +856,7 @@
       margin-bottom: 10px;
     }
     .kp-key {
-      height: 54px;
+      height: 52px;
       background: var(--card-sub);
       border: 1px solid var(--bdr);
       border-radius: var(--radius-sm);
@@ -662,22 +869,12 @@
       justify-content: center;
       transition: background 0.1s, transform 0.05s;
     }
-    .kp-key:active {
-      background: #283147;
-      transform: scale(0.96);
-    }
-    .kp-key-plus {
-      background: #1e293b;
-      color: #60a5fa;
-      font-size: 26px;
-    }
-    .kp-key-del {
-      background: #291818;
-      color: #f87171;
-      font-size: 22px;
-    }
+    .kp-key:hover { background: #242d42; }
+    .kp-key:active { background: #2c3750; transform: scale(0.96); }
+    .kp-key-plus { background: #1e293b; color: #60a5fa; font-size: 26px; }
+    .kp-key-del { background: #291818; color: #f87171; font-size: 22px; }
     .kp-next-btn {
-      height: 52px;
+      height: 50px;
       background: #ffffff;
       color: #0b0d13;
       font-size: var(--fs-base);
@@ -689,9 +886,8 @@
       margin-bottom: 8px;
       transition: background 0.1s;
     }
-    .kp-next-btn:active {
-      background: #e2e8f0;
-    }
+    .kp-next-btn:hover { background: #e5e7eb; }
+    .kp-next-btn:active { background: #d1d5db; }
     .kp-footer-summary {
       display: flex;
       justify-content: space-between;
@@ -703,7 +899,20 @@
       height: 380px;
     }
 
-    /* Cash & Summary Screen (Matching Screenshot 2) */
+    /* Cash & Summary Layout (Desktop Split View) */
+    @media (min-width: 880px) {
+      .cash-desktop-layout {
+        display: grid;
+        grid-template-columns: 1.15fr 0.85fr;
+        gap: 20px;
+        align-items: start;
+      }
+      .cash-sticky-summary {
+        position: sticky;
+        top: 80px;
+      }
+    }
+
     .summary-metric-card {
       background: var(--card-bg);
       border: 1px solid var(--bdr);
@@ -714,9 +923,7 @@
       margin-bottom: 12px;
       text-align: center;
     }
-    .summary-metric-box {
-      flex: 1;
-    }
+    .summary-metric-box { flex: 1; }
     .summary-metric-lbl {
       font-size: var(--fs-xs);
       color: var(--txt-mut);
@@ -745,25 +952,11 @@
       border-bottom: 1px solid var(--bdr);
       font-size: var(--fs-base);
     }
-    .account-row:last-child {
-      border-bottom: none;
-    }
-    .account-row .lbl {
-      color: var(--txt-mut);
-    }
-    .account-row .val {
-      font-weight: 700;
-      color: #ffffff;
-    }
-    .account-row.total .lbl {
-      color: #ffffff;
-      font-weight: 700;
-    }
-    .account-row.total .val {
-      color: var(--acc);
-      font-size: var(--fs-lg);
-      font-weight: 800;
-    }
+    .account-row:last-child { border-bottom: none; }
+    .account-row .lbl { color: var(--txt-mut); }
+    .account-row .val { font-weight: 700; color: #ffffff; }
+    .account-row.total .lbl { color: #ffffff; font-weight: 700; }
+    .account-row.total .val { color: var(--acc); font-size: var(--fs-lg); font-weight: 800; }
 
     /* Difference Banners */
     .diff-banner {
@@ -806,26 +999,9 @@
       border-radius: var(--radius-sm);
       padding: 8px 12px;
     }
-    .denom-lbl {
-      width: 75px;
-      font-weight: 700;
-      font-size: var(--fs-sm);
-    }
-    .denom-inp {
-      flex: 1;
-      height: 40px;
-      text-align: center;
-      font-size: var(--fs-base);
-      font-weight: 700;
-      padding: 0;
-    }
-    .denom-val {
-      width: 90px;
-      text-align: right;
-      font-size: var(--fs-sm);
-      color: var(--txt-mut);
-      font-weight: 600;
-    }
+    .denom-lbl { width: 75px; font-weight: 700; font-size: var(--fs-sm); }
+    .denom-inp { flex: 1; height: 40px; text-align: center; font-size: var(--fs-base); font-weight: 700; padding: 0; }
+    .denom-val { width: 95px; text-align: right; font-size: var(--fs-sm); color: var(--txt-mut); font-weight: 600; }
 
     /* Credit list */
     .credit-entry {
@@ -845,7 +1021,7 @@
       gap: 6px;
       overflow-x: auto;
       padding-bottom: 8px;
-      margin-bottom: 12px;
+      margin-bottom: 14px;
       -webkit-overflow-scrolling: touch;
     }
     .cat-pill {
@@ -860,22 +1036,38 @@
       white-space: nowrap;
       transition: background 0.15s, color 0.15s;
     }
+    .cat-pill:hover { background: #232b3e; color: #fff; }
     .cat-pill.active {
       background: var(--acc);
       color: #fff;
       border-color: var(--acc);
     }
 
-    .rate-card {
-      background: var(--card-bg);
-      border: 1px solid var(--bdr);
-      border-radius: var(--radius);
-      padding: 12px 14px;
-      margin-bottom: 10px;
+    /* Catalog Cards (Responsive Grid) */
+    .catalog-grid {
       display: flex;
       flex-direction: column;
       gap: 10px;
     }
+    @media (min-width: 768px) {
+      .catalog-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
+        gap: 14px;
+      }
+    }
+
+    .rate-card {
+      background: var(--card-bg);
+      border: 1px solid var(--bdr);
+      border-radius: var(--radius);
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      transition: border-color 0.15s;
+    }
+    .rate-card:hover { border-color: var(--bdr-light); }
     .rate-card-top {
       display: flex;
       justify-content: space-between;
@@ -915,6 +1107,20 @@
       padding: 0 6px;
     }
 
+    /* Shops Grid on Desktop */
+    .shops-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    @media (min-width: 768px) {
+      .shops-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 14px;
+      }
+    }
+
     /* Scan sheet review modal */
     .scan-thumb {
       width: 80px;
@@ -932,7 +1138,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 10px;
+      padding: 14px;
     }
     .scan-full-ovl img {
       max-width: 100%;
@@ -959,15 +1165,15 @@
       background: var(--card-bg);
       border: 1px solid var(--bdr);
       border-radius: var(--radius);
-      margin-top: 12px;
+      margin-top: 14px;
     }
     .rpt-table {
       width: 100%;
       border-collapse: collapse;
-      font-size: 13px;
+      font-size: 14px;
     }
     .rpt-table th, .rpt-table td {
-      padding: 10px 8px;
+      padding: 12px 10px;
       text-align: left;
       border-bottom: 1px solid var(--bdr);
       white-space: nowrap;
@@ -976,6 +1182,9 @@
       background: var(--card-sub);
       color: var(--txt-mut);
       font-weight: 700;
+    }
+    .rpt-table tr:hover td {
+      background: rgba(255,255,255,0.02);
     }
     .rpt-table tr:last-child td {
       font-weight: 800;
@@ -995,14 +1204,14 @@
     }
     .toast {
       position: fixed;
-      top: 18px;
+      top: 20px;
       left: 50%;
       transform: translateX(-50%);
       background: #1e3a8a;
       color: #93c5fd;
       border: 1px solid #3b82f6;
       border-radius: 30px;
-      padding: 10px 20px;
+      padding: 10px 22px;
       font-size: var(--fs-sm);
       font-weight: 700;
       z-index: 300;
@@ -1037,6 +1246,15 @@
       to { transform: rotate(360deg); }
     }
 
+    /* Print styles for reports */
+    @media print {
+      body { background: #fff !important; color: #000 !important; }
+      .desktop-header, .bottom-menu, .topbar, .btn, .card:has(#rpt-from-date) { display: none !important; }
+      #app, .screen, .scroll-body { max-width: 100% !important; border: none !important; box-shadow: none !important; padding: 0 !important; }
+      .rpt-table th, .rpt-table td { color: #000 !important; border-color: #ccc !important; }
+      .rpt-table th { background: #eee !important; }
+    }
+
     /* Hide file input */
     .file-input-hidden {
       position: absolute;
@@ -1050,13 +1268,52 @@
 <body>
 <div id="app">
 
+  <!-- ==================== DESKTOP TOP NAVIGATION HEADER ==================== -->
+  <header id="desktop-app-header" class="desktop-header">
+    <div class="dh-left" onclick="showScreen('home')">
+      <span class="dh-logo">🚚</span>
+      <div>
+        <div class="dh-title">Arjun Traders</div>
+        <div class="dh-sub" id="dh-user-role">Vehicle Sale Report</div>
+      </div>
+    </div>
+
+    <nav class="dh-nav">
+      <button class="dh-link active" id="dh-btn-home" onclick="showScreen('home')">
+        <span>🏠</span> Home
+      </button>
+      <button class="dh-link" id="dh-btn-trip" onclick="openCurrentOrLatestTrip()">
+        <span>📋</span> Trip Sheet
+      </button>
+      <button class="dh-link" id="dh-btn-items" onclick="showScreen('items')">
+        <span>🏷️</span> Menu &amp; Rates
+      </button>
+      <button class="dh-link" id="dh-btn-shops" onclick="showScreen('shops')">
+        <span>🏪</span> Shops &amp; Dues
+      </button>
+      <button class="dh-link" id="dh-btn-reports" onclick="showScreen('reports')">
+        <span>📊</span> Reports
+      </button>
+    </nav>
+
+    <div class="dh-right">
+      <div class="dh-user-info">
+        <span class="dh-user-name" id="dh-user-name">Welcome</span>
+        <span class="badge badge-out" id="dh-user-badge" style="font-size:11px;padding:2px 8px;">Role</span>
+      </div>
+      <button class="btn btn-xs btn-outline" onclick="handleLogout()" title="Logout" style="width:auto;height:34px;">
+        🚪 Logout
+      </button>
+    </div>
+  </header>
+
   <!-- ==================== 1. LOGIN SCREEN ==================== -->
   <div id="screen-login" class="screen active no-nav">
     <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;">
-      <div style="width:100%;max-width:360px;">
-        <div style="text-align:center;margin-bottom:32px;">
-          <div style="font-size:56px;margin-bottom:10px;">🚚</div>
-          <h1 style="font-size:30px;font-weight:800;letter-spacing:-0.5px;">Arjun Traders</h1>
+      <div style="width:100%;max-width:380px;background:var(--card-bg);border:1px solid var(--bdr);border-radius:16px;padding:32px 28px;">
+        <div style="text-align:center;margin-bottom:28px;">
+          <div style="font-size:56px;margin-bottom:8px;">🚚</div>
+          <h1 style="font-size:28px;font-weight:800;letter-spacing:-0.5px;">Arjun Traders</h1>
           <p style="color:var(--txt-mut);font-size:var(--fs-sm);margin-top:4px;">Vehicle Sale Report &amp; Trip Sheet</p>
         </div>
 
@@ -1067,7 +1324,7 @@
           <input type="email" id="login-email" placeholder="owner@arjuntraders.com" autocomplete="username" />
         </div>
 
-        <div class="fg" style="margin-bottom:20px;">
+        <div class="fg" style="margin-bottom:22px;">
           <label>Password</label>
           <input type="password" id="login-pass" placeholder="Enter password" autocomplete="current-password" />
         </div>
@@ -1081,7 +1338,7 @@
   <div id="screen-noaccess" class="screen no-nav" style="align-items:center;justify-content:center;text-align:center;padding:32px;">
     <div style="font-size:60px;margin-bottom:16px;">🔒</div>
     <h2 style="font-size:var(--fs-xl);margin-bottom:8px;">No Profile Found</h2>
-    <p style="color:var(--txt-mut);margin-bottom:24px;font-size:var(--fs-sm);">Your account is authenticated, but no matching role profile was found in Arjun Traders system. Please contact the owner.</p>
+    <p style="color:var(--txt-mut);margin-bottom:24px;font-size:var(--fs-sm);max-width:440px;">Your account is authenticated, but no matching role profile was found in Arjun Traders system. Please contact the owner.</p>
     <button class="btn btn-outline btn-sm" onclick="handleLogout()" style="max-width:200px;">Logout</button>
   </div>
 
@@ -1095,40 +1352,42 @@
           <div class="topbar-sub" id="home-date-display">Today</div>
         </div>
       </div>
-      <button class="topbar-btn" onclick="handleLogout()" title="Logout" style="font-size:16px;">🚪</button>
+      <button class="topbar-btn" id="home-logout-btn-mobile" onclick="handleLogout()" title="Logout" style="font-size:16px;">🚪</button>
     </div>
 
     <div class="scroll-body">
       <div id="home-err" class="errmsg"></div>
 
-      <!-- Overview Stats (Matching Screenshot 3) -->
+      <!-- Overview Stats (Responsive Grid) -->
       <div class="stats-row">
         <div class="stat-box">
           <div class="stat-num" id="stat-out">0</div>
-          <div class="stat-label">Autos Out</div>
+          <div class="stat-label">Autos Out on Trip</div>
         </div>
         <div class="stat-box">
           <div class="stat-num" id="stat-ret" style="color:var(--grn-text);">0</div>
-          <div class="stat-label">Returned</div>
+          <div class="stat-label">Returned &amp; Settled</div>
         </div>
-        <div class="stat-box" onclick="showScreen('shops')" style="cursor:pointer;">
-          <div class="stat-num" id="stat-dues" style="font-size:18px;color:var(--amber-text);">₹0</div>
-          <div class="stat-label">Pending Dues</div>
+        <div class="stat-box" onclick="showScreen('shops')" style="cursor:pointer;" title="View all pending shop dues">
+          <div class="stat-num" id="stat-dues" style="color:var(--amber-text);">₹0</div>
+          <div class="stat-label">Pending Dues (Tap to view)</div>
         </div>
       </div>
 
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-        <span class="card-title" style="margin-bottom:0;">Today's Auto Trip Sheets</span>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+        <span class="card-title" style="margin-bottom:0;">Today's Auto Trip Sheets (Auto 1 – Auto 6)</span>
         <button class="btn btn-xs btn-outline" onclick="loadHomeScreenData()">↻ Refresh</button>
       </div>
 
-      <!-- Auto Cards Grid (Auto 1 to Auto 6) -->
+      <!-- Auto Cards Grid (Responsive 1-col on phone, multi-col on desktop) -->
       <div class="auto-grid" id="auto-cards-list"></div>
 
-      <!-- Quick Action Buttons -->
-      <div style="display:flex;flex-direction:column;gap:10px;margin-top:8px;">
+      <!-- Quick Action Buttons on Desktop / Tablet -->
+      <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));gap:12px;margin-top:12px;">
         <button class="btn btn-white" onclick="openNewTripPrompt()">+ New Trip Sheet</button>
-        <button class="btn btn-ghost" onclick="showScreen('reports')">📊 View Sales Reports</button>
+        <button class="btn btn-ghost" onclick="showScreen('items')">🏷️ Predefined Rates Menu</button>
+        <button class="btn btn-ghost" onclick="showScreen('shops')">🏪 Shops &amp; Credit Dues</button>
+        <button class="btn btn-ghost" onclick="showScreen('reports')">📊 View Reports</button>
       </div>
     </div>
   </div>
@@ -1158,52 +1417,49 @@
 
       <!-- TAB 1: MORNING LOAD -->
       <div id="tab-panel-load">
-        <!-- Trip Header Metadata Card -->
+        <!-- Trip Header Metadata Card (Responsive Multi-Column on Desktop) -->
         <div class="card">
-          <div class="row2">
-            <div class="fg" style="margin:0;">
+          <div class="row-desktop-3">
+            <div class="fg" style="margin-bottom:10px;">
               <label>Trip Date</label>
               <input type="date" id="trip-date" />
             </div>
-            <div class="fg" style="margin:0;">
+            <div class="fg" style="margin-bottom:10px;">
               <label>Delivery Auto</label>
               <select id="trip-auto-select" onchange="onTripAutoSelectChanged()"></select>
             </div>
-          </div>
-          <div class="row2" style="margin-top:10px;">
-            <div class="fg" style="margin:0;">
+            <div class="fg" style="margin-bottom:10px;">
               <label>Driver Name</label>
               <input type="text" id="trip-driver" placeholder="Driver name" />
             </div>
-            <div class="fg" style="margin:0;">
+            <div class="fg" style="margin-bottom:10px;">
               <label>CSO (Staff)</label>
               <input type="text" id="trip-cso" placeholder="CSO name" />
             </div>
-          </div>
-          <div class="row2" style="margin-top:10px;">
-            <div class="fg" style="margin:0;">
+            <div class="fg" style="margin-bottom:10px;">
               <label>Start KM</label>
               <input type="number" id="trip-startkm" placeholder="e.g. 12450" />
             </div>
-            <div class="fg" style="margin:0;">
+            <div class="fg" style="margin-bottom:10px;">
               <label>Diesel (Litres)</label>
               <input type="number" id="trip-diesel-load" placeholder="0.0" step="0.5" />
             </div>
           </div>
         </div>
 
-        <!-- Search Bar & Add Item Button (Requested by User) -->
+        <!-- Search Bar & Add Item Button -->
         <div class="search-add-bar">
           <div class="search-input-wrap">
             <span class="search-icon">🔍</span>
             <input type="search" id="load-search-box" placeholder="Search item to add value..." oninput="filterLoadItems()" />
+            <span class="search-shortcut-hint">Press / to search</span>
           </div>
           <button class="add-action-btn" onclick="openQuickItemModal()" title="Add New Item to Catalog">+</button>
         </div>
 
-        <!-- Scan Sheet Button with Camera Icon -->
-        <div style="display:flex;gap:10px;margin-bottom:12px;">
-          <button class="btn btn-outline btn-sm" id="btn-scan-load" onclick="startCameraScan('load')" style="flex:1;">
+        <!-- Action Row -->
+        <div style="display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap;">
+          <button class="btn btn-outline btn-sm" id="btn-scan-load" onclick="startCameraScan('load')" style="flex:1;min-width:180px;">
             📷 Scan Paper Sheet
           </button>
           <input type="file" accept="image/*" capture="environment" id="scan-file-input-load" class="file-input-hidden" onchange="onScanFilePicked(event, 'load')" />
@@ -1227,13 +1483,13 @@
           </div>
         </div>
 
-        <!-- Spacer when keypad is open -->
+        <!-- Spacer when keypad is open on mobile -->
         <div class="keypad-spacer" id="load-keypad-spacer" style="display:none;"></div>
 
         <!-- Morning Action Buttons -->
-        <div style="display:flex;gap:10px;margin-top:14px;">
-          <button class="btn btn-ghost btn-sm" onclick="saveTripDraft()" style="width:110px;">💾 Draft</button>
-          <button class="btn btn-success" id="btn-save-morning" onclick="saveMorningLoad()" style="flex:1;">✓ Save Morning Load (Out)</button>
+        <div style="display:flex;gap:12px;margin-top:14px;">
+          <button class="btn btn-ghost btn-sm" onclick="saveTripDraft()" style="width:120px;">💾 Save Draft</button>
+          <button class="btn btn-success" id="btn-save-morning" onclick="saveMorningLoad()" style="flex:1;">✓ Save Morning Load (Mark Out)</button>
         </div>
       </div>
 
@@ -1251,13 +1507,13 @@
               <input type="number" id="trip-diesel-eve" placeholder="0.0" step="0.5" oninput="calculateTripMileage()" />
             </div>
           </div>
-          <div class="summary-metric-card" id="mileage-stats-box" style="display:none;margin-top:10px;margin-bottom:0;">
+          <div class="summary-metric-card" id="mileage-stats-box" style="display:none;margin-top:12px;margin-bottom:0;">
             <div class="summary-metric-box">
-              <div class="summary-metric-lbl">Distance</div>
+              <div class="summary-metric-lbl">Distance Traveled</div>
               <div class="summary-metric-val" id="val-distance">-</div>
             </div>
             <div class="summary-metric-box">
-              <div class="summary-metric-lbl">Mileage</div>
+              <div class="summary-metric-lbl">Calculated Mileage</div>
               <div class="summary-metric-val" id="val-mileage" style="color:var(--grn-text);">-</div>
             </div>
           </div>
@@ -1287,111 +1543,118 @@
           </div>
         </div>
 
-        <p style="text-align:center;font-size:12px;color:var(--txt-dim);margin:8px 0 14px;">
-          💡 Green values (Sale &amp; Amount) are calculated by the app, not typed.
+        <p style="text-align:center;font-size:13px;color:var(--txt-dim);margin:8px 0 16px;">
+          💡 Green values (Sale &amp; Amount) are automatically calculated by the app, never typed.
         </p>
 
-        <!-- Spacer when keypad is open -->
+        <!-- Spacer when keypad is open on mobile -->
         <div class="keypad-spacer" id="return-keypad-spacer" style="display:none;"></div>
 
-        <!-- Next: Cash Collected Button (Matching Screenshot 2 Left) -->
-        <div style="display:flex;gap:10px;">
-          <button class="btn btn-ghost btn-sm" onclick="saveTripDraft()" style="width:110px;">💾 Draft</button>
+        <!-- Next: Cash Collected Button -->
+        <div style="display:flex;gap:12px;">
+          <button class="btn btn-ghost btn-sm" onclick="saveTripDraft()" style="width:120px;">💾 Save Draft</button>
           <button class="btn btn-white" onclick="proceedToCashTab()" style="flex:1;">Next: Cash Collected →</button>
         </div>
       </div>
 
-      <!-- TAB 3: CASH & SETTLEMENT SUMMARY (Matching Screenshot 2 Right) -->
+      <!-- TAB 3: CASH & SETTLEMENT SUMMARY (Responsive 2-Col on Desktop) -->
       <div id="tab-panel-cash" style="display:none;">
-        <!-- Top Mileage and Distance Indicator -->
-        <div class="summary-metric-card" id="cash-mileage-card">
-          <div class="summary-metric-box">
-            <div class="summary-metric-lbl">Distance</div>
-            <div class="summary-metric-val" id="cash-dist-val">0 km</div>
-          </div>
-          <div class="summary-metric-box">
-            <div class="summary-metric-lbl">Mileage</div>
-            <div class="summary-metric-val" id="cash-mileage-val" style="color:var(--grn-text);">-</div>
-          </div>
-        </div>
-
-        <!-- Account Summary Breakdown (Matching Screenshot 2 Right) -->
-        <div class="account-summary-card">
-          <div class="account-row">
-            <span class="lbl">Expected from sales</span>
-            <span class="val" id="sum-exp-sales">₹ 0</span>
-          </div>
-          <div class="account-row">
-            <span class="lbl">Cash in hand</span>
-            <span class="val" id="sum-cash-hand">₹ 0</span>
-          </div>
-          <div class="account-row">
-            <span class="lbl">PhonePe</span>
-            <span class="val" id="sum-phonepe">₹ 0</span>
-          </div>
-          <div class="account-row">
-            <span class="lbl">Given on credit</span>
-            <span class="val" id="sum-credit">₹ 0</span>
-          </div>
-          <div class="account-row total">
-            <span class="lbl">Total accounted</span>
-            <span class="val" id="sum-total-accounted">₹ 0</span>
-          </div>
-        </div>
-
-        <!-- Discrepancy Banner (Red Short by X / Green Matched / Green Extra) -->
-        <div id="settlement-diff-banner" class="diff-banner diff-matched">✓ Matched</div>
-
-        <!-- Credit Section -->
-        <div class="card">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-            <span class="card-title" style="margin-bottom:0;">👤 Credit Given to Shops</span>
-            <span style="font-size:var(--fs-sm);color:var(--txt-mut);" id="credit-count-badge">0 shops</span>
-          </div>
-          <div id="trip-credit-items-list"></div>
-
-          <!-- Add Credit Form -->
-          <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;">
-            <select id="trip-credit-shop-select" style="flex:2;min-width:140px;height:42px;font-size:var(--fs-sm);"></select>
-            <input type="number" id="trip-credit-amount" placeholder="Amount (₹)" style="flex:1;min-width:90px;height:42px;font-size:var(--fs-sm);" />
-            <button class="btn btn-sm btn-ghost" onclick="addShopCreditEntry()" style="height:42px;">+ Add</button>
-          </div>
-        </div>
-
-        <!-- Cash Count Breakdown (Denominations) Toggle -->
-        <div class="card">
-          <div style="display:flex;justify-content:space-between;align-items:center;cursor:pointer;" onclick="toggleDenominationView()">
-            <div>
-              <div class="card-title" style="margin-bottom:2px;">💵 Cash Denominations</div>
-              <div style="font-size:var(--fs-sm);color:var(--grn-text);font-weight:700;" id="denom-total-badge">Total: ₹ 0</div>
+        <div class="cash-desktop-layout">
+          <!-- Left Column on Desktop: Denominations & Credit -->
+          <div class="cash-left-col">
+            <!-- Top Mileage and Distance Indicator -->
+            <div class="summary-metric-card" id="cash-mileage-card">
+              <div class="summary-metric-box">
+                <div class="summary-metric-lbl">Distance Traveled</div>
+                <div class="summary-metric-val" id="cash-dist-val">0 km</div>
+              </div>
+              <div class="summary-metric-box">
+                <div class="summary-metric-lbl">Vehicle Mileage</div>
+                <div class="summary-metric-val" id="cash-mileage-val" style="color:var(--grn-text);">-</div>
+              </div>
             </div>
-            <button class="btn btn-xs btn-outline" id="denom-toggle-btn">Edit Notes ▼</button>
+
+            <!-- Cash Count Breakdown (Denominations) -->
+            <div class="card">
+              <div style="display:flex;justify-content:space-between;align-items:center;cursor:pointer;" onclick="toggleDenominationView()">
+                <div>
+                  <div class="card-title" style="margin-bottom:2px;">💵 Cash by Denomination</div>
+                  <div style="font-size:var(--fs-sm);color:var(--grn-text);font-weight:700;" id="denom-total-badge">Total: ₹ 0</div>
+                </div>
+                <button class="btn btn-xs btn-outline" id="denom-toggle-btn">Edit Notes ▼</button>
+              </div>
+
+              <div id="denom-inputs-container" style="display:none;margin-top:14px;">
+                <div class="denom-grid" id="denom-rows-list"></div>
+              </div>
+            </div>
+
+            <!-- PhonePe UPI Input -->
+            <div class="card">
+              <div class="fg" style="margin:0;">
+                <label>📱 PhonePe / Online Payments (₹)</label>
+                <input type="number" id="phonepe-input" placeholder="0" oninput="recalculateCashSummary()" style="font-weight:700;font-size:var(--fs-lg);" />
+              </div>
+            </div>
+
+            <!-- Credit Section -->
+            <div class="card">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+                <span class="card-title" style="margin-bottom:0;">👤 Credit Given to Shops</span>
+                <span style="font-size:var(--fs-sm);color:var(--txt-mut);" id="credit-count-badge">0 shops</span>
+              </div>
+              <div id="trip-credit-items-list"></div>
+
+              <!-- Add Credit Form -->
+              <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;">
+                <select id="trip-credit-shop-select" style="flex:2;min-width:140px;height:42px;font-size:var(--fs-sm);"></select>
+                <input type="number" id="trip-credit-amount" placeholder="Amount (₹)" style="flex:1;min-width:90px;height:42px;font-size:var(--fs-sm);" />
+                <button class="btn btn-sm btn-ghost" onclick="addShopCreditEntry()" style="height:42px;">+ Add</button>
+              </div>
+            </div>
           </div>
 
-          <div id="denom-inputs-container" style="display:none;margin-top:14px;">
-            <div class="denom-grid" id="denom-rows-list"></div>
-          </div>
-        </div>
+          <!-- Right Column on Desktop: Sticky Account Summary -->
+          <div class="cash-sticky-summary">
+            <div class="account-summary-card">
+              <div class="card-title" style="margin-top:6px;">Settlement Summary</div>
+              <div class="account-row">
+                <span class="lbl">Expected from sales</span>
+                <span class="val" id="sum-exp-sales">₹ 0</span>
+              </div>
+              <div class="account-row">
+                <span class="lbl">Cash in hand</span>
+                <span class="val" id="sum-cash-hand">₹ 0</span>
+              </div>
+              <div class="account-row">
+                <span class="lbl">PhonePe</span>
+                <span class="val" id="sum-phonepe">₹ 0</span>
+              </div>
+              <div class="account-row">
+                <span class="lbl">Given on credit</span>
+                <span class="val" id="sum-credit">₹ 0</span>
+              </div>
+              <div class="account-row total">
+                <span class="lbl">Total accounted</span>
+                <span class="val" id="sum-total-accounted">₹ 0</span>
+              </div>
+            </div>
 
-        <!-- PhonePe UPI Input -->
-        <div class="card">
-          <div class="fg" style="margin:0;">
-            <label>📱 PhonePe / Online Payments (₹)</label>
-            <input type="number" id="phonepe-input" placeholder="0" oninput="recalculateCashSummary()" style="font-weight:700;font-size:var(--fs-lg);" />
-          </div>
-        </div>
+            <!-- Discrepancy Banner (Red Short by X / Green Matched / Green Extra) -->
+            <div id="settlement-diff-banner" class="diff-banner diff-matched">✓ Matched</div>
 
-        <!-- Action Buttons (Matching Screenshot 2 Right) -->
-        <div style="display:flex;flex-direction:column;gap:10px;margin-top:16px;">
-          <button class="btn btn-white" id="btn-save-day" onclick="saveDaySettlement()">Save Day (Mark Returned)</button>
-          <button class="btn btn-outline" onclick="toggleDenominationView()">Edit Cash Count</button>
+            <!-- Action Buttons -->
+            <div style="display:flex;flex-direction:column;gap:10px;">
+              <button class="btn btn-white" id="btn-save-day" onclick="saveDaySettlement()">Save Day (Mark Returned)</button>
+              <button class="btn btn-outline" onclick="toggleDenominationView()">Edit Cash Count</button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
   </div>
 
   <!-- ==================== 5. MENU BAR / PREDEFINED RATES SCREEN ==================== -->
-  <!-- "section that predefine the item value per case wise & per unit wise which is menu bar" -->
   <div id="screen-items" class="screen">
     <div class="topbar">
       <div class="topbar-left">
@@ -1407,11 +1670,12 @@
     <div class="scroll-body">
       <div id="items-screen-err" class="errmsg"></div>
 
-      <!-- Search Bar to quickly find any product -->
+      <!-- Search Bar -->
       <div class="search-add-bar">
         <div class="search-input-wrap">
           <span class="search-icon">🔍</span>
           <input type="search" id="catalog-search-box" placeholder="Search beverages or brands..." oninput="filterCatalogItems()" />
+          <span class="search-shortcut-hint">Press / to search</span>
         </div>
         <button class="add-action-btn" onclick="openQuickItemModal()" title="Add New Item">+</button>
       </div>
@@ -1420,12 +1684,12 @@
       <div class="category-pills" id="category-filter-pills"></div>
 
       <!-- Role Notice -->
-      <div id="role-notice-banner" style="background:#131d2e;border:1px solid #1e3a8a;border-radius:var(--radius-sm);padding:8px 12px;font-size:13px;color:#93c5fd;margin-bottom:12px;">
+      <div id="role-notice-banner" style="background:#131d2e;border:1px solid #1e3a8a;border-radius:var(--radius-sm);padding:10px 14px;font-size:13px;color:#93c5fd;margin-bottom:14px;">
         ℹ️ Staff mode: Viewing predefined rates. (Owner can edit values).
       </div>
 
-      <!-- Predefined Items List (Case-wise & Unit-wise) -->
-      <div id="catalog-items-container"></div>
+      <!-- Predefined Items List (Responsive Grid on Desktop) -->
+      <div class="catalog-grid" id="catalog-items-container"></div>
     </div>
   </div>
 
@@ -1449,11 +1713,12 @@
         <div class="search-input-wrap">
           <span class="search-icon">🔍</span>
           <input type="search" id="shops-search-box" placeholder="Search shops..." oninput="filterShopsList()" />
+          <span class="search-shortcut-hint">Press / to search</span>
         </div>
         <button class="add-action-btn" onclick="openNewShopModal()" title="Add Shop">+</button>
       </div>
 
-      <div id="shops-list-container"></div>
+      <div class="shops-grid" id="shops-list-container"></div>
     </div>
   </div>
 
@@ -1472,29 +1737,31 @@
     <div class="scroll-body">
       <div id="shop-detail-err" class="errmsg"></div>
 
-      <div class="card" style="text-align:center;padding:18px;">
+      <div class="card" style="text-align:center;padding:20px;max-width:500px;margin:0 auto 16px;">
         <div style="font-size:var(--fs-sm);color:var(--txt-mut);font-weight:700;">CURRENT BALANCE DUE</div>
-        <div style="font-size:32px;font-weight:800;color:var(--red-text);margin-top:4px;" id="shop-detail-due-val">₹ 0</div>
+        <div style="font-size:36px;font-weight:800;color:var(--red-text);margin-top:4px;" id="shop-detail-due-val">₹ 0</div>
       </div>
 
-      <button class="btn btn-primary" id="btn-show-recv-payment" onclick="toggleReceivePaymentForm()" style="margin-bottom:14px;">
-        💰 Receive Payment
-      </button>
+      <div style="max-width:500px;margin:0 auto 16px;">
+        <button class="btn btn-primary" id="btn-show-recv-payment" onclick="toggleReceivePaymentForm()">
+          💰 Receive Payment
+        </button>
 
-      <!-- Receive Payment Card -->
-      <div class="card" id="recv-payment-card" style="display:none;">
-        <div class="card-title">Record Payment Received</div>
-        <div class="fg">
-          <label>Payment Amount (₹)</label>
-          <input type="number" id="recv-pmt-amount" placeholder="Amount received" />
-        </div>
-        <div class="fg">
-          <label>Payment Note / Reference</label>
-          <input type="text" id="recv-pmt-note" placeholder="Cash, GPay, Cheque..." />
-        </div>
-        <div style="display:flex;gap:10px;">
-          <button class="btn btn-sm btn-outline" onclick="toggleReceivePaymentForm()" style="flex:1;">Cancel</button>
-          <button class="btn btn-sm btn-success" id="btn-save-recv-payment" onclick="submitReceivedPayment()" style="flex:1;">Save Payment</button>
+        <!-- Receive Payment Card -->
+        <div class="card" id="recv-payment-card" style="display:none;margin-top:12px;">
+          <div class="card-title">Record Payment Received</div>
+          <div class="fg">
+            <label>Payment Amount (₹)</label>
+            <input type="number" id="recv-pmt-amount" placeholder="Amount received" />
+          </div>
+          <div class="fg">
+            <label>Payment Note / Reference</label>
+            <input type="text" id="recv-pmt-note" placeholder="Cash, GPay, Cheque..." />
+          </div>
+          <div style="display:flex;gap:10px;">
+            <button class="btn btn-sm btn-outline" onclick="toggleReceivePaymentForm()" style="flex:1;">Cancel</button>
+            <button class="btn btn-sm btn-success" id="btn-save-recv-payment" onclick="submitReceivedPayment()" style="flex:1;">Save Payment</button>
+          </div>
         </div>
       </div>
 
@@ -1513,12 +1780,13 @@
           <div class="topbar-sub">Summary &amp; Audit</div>
         </div>
       </div>
+      <button class="btn btn-xs btn-outline" onclick="window.print()" style="gap:4px;">🖨️ Print / PDF</button>
     </div>
 
     <div class="scroll-body">
       <div id="reports-err" class="errmsg"></div>
 
-      <div class="card">
+      <div class="card" style="max-width:600px;">
         <div class="row2">
           <div class="fg" style="margin:0;">
             <label>From Date</label>
@@ -1536,7 +1804,6 @@
   </div>
 
   <!-- ==================== 8. CAMERA REVIEW SCREEN ==================== -->
-  <!-- Matching Screenshot 3 Right -->
   <div id="screen-scan-review" class="screen no-nav">
     <div class="topbar">
       <div class="topbar-left">
@@ -1549,14 +1816,14 @@
       <span class="badge badge-warning" id="scan-check-badge">Check</span>
     </div>
 
-    <div class="scroll-body">
+    <div class="scroll-body" style="max-width:700px;margin:0 auto;width:100%;">
       <div id="scan-review-err" class="errmsg"></div>
 
       <!-- Photo Card (Tap to zoom) -->
       <div class="card" style="display:flex;align-items:center;gap:14px;cursor:pointer;" onclick="openFullPhotoView()">
         <img id="scan-photo-thumbnail" class="scan-thumb" src="" alt="Trip sheet photo" />
         <div>
-          <div style="font-weight:700;font-size:var(--fs-sm);">Photo of Sheet (Tap to zoom)</div>
+          <div style="font-weight:700;font-size:var(--fs-sm);">Photo of Sheet (Click to zoom)</div>
           <p style="color:var(--txt-mut);font-size:var(--fs-xs);margin-top:2px;">Compare recognized values with paper sheet.</p>
         </div>
       </div>
@@ -1570,14 +1837,14 @@
         <div class="table-header">
           <div class="col-item">Item Name</div>
           <div class="col-cases">Cases</div>
-          <div style="width:70px;text-align:right;">Status</div>
+          <div style="width:75px;text-align:right;">Status</div>
         </div>
         <div id="scan-recognized-lines"></div>
       </div>
 
-      <!-- Action Buttons (Matching Screenshot 3 Right) -->
+      <!-- Action Buttons -->
       <div style="display:flex;gap:10px;margin-top:16px;">
-        <button class="btn btn-outline" onclick="cancelScanReview()" style="flex:1;">Save as Draft</button>
+        <button class="btn btn-outline" onclick="cancelScanReview()" style="flex:1;">Cancel</button>
         <button class="btn btn-white" onclick="confirmScanValues()" style="flex:1;">Confirm &amp; Fill</button>
       </div>
     </div>
@@ -1589,8 +1856,7 @@
     <img id="photo-full-img" src="" alt="Full Trip Sheet" />
   </div>
 
-  <!-- ==================== 9. BOTTOM KEYPAD COMPONENT ==================== -->
-  <!-- Matching Screenshot 1 precisely -->
+  <!-- ==================== 9. KEYPAD COMPONENT ==================== -->
   <div id="interactive-keypad" class="keypad-dock">
     <div class="kp-header">
       <div class="kp-item-title" id="kp-target-title">Item Name</div>
@@ -1622,8 +1888,8 @@
       <button class="kp-key kp-key-del" onclick="pressKeypad('backspace')">⌫</button>
     </div>
 
-    <!-- Next Item Action Button (Matching Screenshot 1) -->
-    <button class="kp-next-btn" onclick="pressKeypadNextItem()">Next Item →</button>
+    <!-- Next Item Action Button -->
+    <button class="kp-next-btn" onclick="pressKeypadNextItem()">Next Item → (Enter)</button>
 
     <!-- Keypad footer summary -->
     <div class="kp-footer-summary">
@@ -1632,8 +1898,7 @@
     </div>
   </div>
 
-  <!-- ==================== 10. PERSISTENT MENU BAR (NAVIGATION) ==================== -->
-  <!-- User: "also need a section that predefine the item value per case wise & per unit wise which is menu bar" -->
+  <!-- ==================== 10. MOBILE BOTTOM MENU BAR ==================== -->
   <nav class="bottom-menu" id="app-bottom-navbar">
     <button class="menu-item active" id="nav-btn-home" onclick="showScreen('home')">
       <span class="icon">🏠</span>
@@ -1661,7 +1926,7 @@
 
 <!-- Quick Add Item Modal -->
 <div id="modal-quick-add-item" class="scan-full-ovl" style="display:none;">
-  <div class="card" style="width:100%;max-width:380px;background:var(--card-bg);margin:16px;">
+  <div class="card" style="width:100%;max-width:440px;background:var(--card-bg);margin:16px;">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
       <h2 style="font-size:var(--fs-lg);">Add New Item</h2>
       <button class="topbar-btn" onclick="closeQuickItemModal()" style="border:none;">✕</button>
@@ -1708,7 +1973,7 @@
 
 <!-- New Shop Modal -->
 <div id="modal-new-shop" class="scan-full-ovl" style="display:none;">
-  <div class="card" style="width:100%;max-width:360px;background:var(--card-bg);margin:16px;">
+  <div class="card" style="width:100%;max-width:380px;background:var(--card-bg);margin:16px;">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
       <h2 style="font-size:var(--fs-lg);">Add Shop</h2>
       <button class="topbar-btn" onclick="closeNewShopModal()" style="border:none;">✕</button>
@@ -1857,10 +2122,15 @@ function showScreen(name) {
     window.scrollTo(0, 0);
   }
 
-  // Update Bottom Nav state
+  // Update Mobile Bottom Nav state
   document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
   const navBtn = document.getElementById('nav-btn-' + name);
   if (navBtn) navBtn.classList.add('active');
+
+  // Update Desktop Top Nav state
+  document.querySelectorAll('.dh-link').forEach(l => l.classList.remove('active'));
+  const dhBtn = document.getElementById('dh-btn-' + name);
+  if (dhBtn) dhBtn.classList.add('active');
 
   // Screen specific hooks
   if (name === 'home') {
@@ -1932,6 +2202,18 @@ async function loadUserProfileAndBootstrap() {
 
   currentProfile = profile;
 
+  // Update Desktop Header user info
+  const dhName = document.getElementById('dh-user-name');
+  const dhRole = document.getElementById('dh-user-role');
+  const dhBadge = document.getElementById('dh-user-badge');
+
+  if (dhName) dhName.textContent = currentProfile.name;
+  if (dhRole) dhRole.textContent = currentProfile.role === 'owner' ? 'Owner Portal' : 'Staff Portal';
+  if (dhBadge) {
+    dhBadge.textContent = currentProfile.role.toUpperCase();
+    dhBadge.className = 'badge ' + (currentProfile.role === 'owner' ? 'badge-out' : 'badge-draft');
+  }
+
   // Load Seeded Tables: Autos, Items, Shops
   await Promise.all([fetchAutos(), fetchCatalogItems(), fetchShops()]);
   hideLoading();
@@ -2002,7 +2284,7 @@ async function loadHomeScreenData() {
   }, 0);
   document.getElementById('stat-dues').textContent = formatRupees(totalPendingDues);
 
-  // Render Auto 1 to Auto 6 Cards (Matching Screenshot 3 Left)
+  // Render Auto 1 to Auto 6 Cards (Responsive)
   const container = document.getElementById('auto-cards-list');
   container.innerHTML = '';
 
@@ -2039,7 +2321,6 @@ async function loadHomeScreenData() {
 }
 
 function openNewTripPrompt() {
-  // Find first auto without an active trip today, or Auto 1
   const availableAuto = allAutos[0];
   if (availableAuto) {
     openTripForAuto(availableAuto, null);
@@ -2211,7 +2492,6 @@ function renderLoadItemsTable() {
     const qty = line ? (line.load_qty || 0) : 0;
     totalCasesLoaded += qty;
 
-    // Filter 0 qty rows unless searching or toggleShowAllItems is on
     if (!showAllLoadItems && qty === 0 && !search) return;
 
     if (!groups[item.grp]) groups[item.grp] = [];
@@ -2221,12 +2501,11 @@ function renderLoadItemsTable() {
   const groupKeys = Object.keys(groups);
   if (groupKeys.length === 0) {
     if (!search && !showAllLoadItems) {
-      // If table is completely empty, show all items automatically
       showAllLoadItems = true;
       renderLoadItemsTable();
       return;
     }
-    container.innerHTML = `<div style="padding:20px;text-align:center;color:var(--txt-mut);font-size:var(--fs-sm);">No items match search.</div>`;
+    container.innerHTML = `<div style="padding:24px;text-align:center;color:var(--txt-mut);font-size:var(--fs-sm);">No items match search.</div>`;
     document.getElementById('load-total-cases').textContent = '0 cases';
     return;
   }
@@ -2269,8 +2548,6 @@ function renderReturnItemsTable() {
   container.innerHTML = '';
 
   let totalSaleAmount = 0;
-
-  // Only show items that had a load in morning
   const loadedItems = allItems.filter(i => (activeTripLines[i.id]?.load_qty || 0) > 0);
 
   if (!loadedItems.length) {
@@ -2348,7 +2625,7 @@ function proceedToCashTab() {
   recalculateCashSummary();
 }
 
-// --- 7. INTERACTIVE NUMBER KEYPAD (Matching Screenshot 1) ---
+// --- 7. INTERACTIVE NUMBER KEYPAD & DESKTOP KEYBOARD SUPPORT ---
 
 function openInteractiveKeypad(itemId, mode) {
   kpTargetItemId = itemId;
@@ -2367,7 +2644,7 @@ function openInteractiveKeypad(itemId, mode) {
 
   updateKeypadDisplay();
 
-  // Show keypad and spacer
+  // Show keypad and spacer on mobile
   document.getElementById('interactive-keypad').style.display = 'block';
   const spacer = document.getElementById(mode === 'load' ? 'load-keypad-spacer' : 'return-keypad-spacer');
   if (spacer) spacer.style.display = 'block';
@@ -2437,7 +2714,6 @@ function pressKeypad(key) {
 function pressKeypadNextItem() {
   applyKeypadValue();
 
-  // Find next item in current list
   const activeList = kpMode === 'load' ? allItems : allItems.filter(i => (activeTripLines[i.id]?.load_qty || 0) > 0);
   const currentIndex = activeList.findIndex(i => i.id === kpTargetItemId);
 
@@ -2446,6 +2722,17 @@ function pressKeypadNextItem() {
     openInteractiveKeypad(nextItem.id, kpMode);
   } else {
     dismissKeypad();
+  }
+}
+
+function selectPreviousItem() {
+  applyKeypadValue();
+  const activeList = kpMode === 'load' ? allItems : allItems.filter(i => (activeTripLines[i.id]?.load_qty || 0) > 0);
+  const currentIndex = activeList.findIndex(i => i.id === kpTargetItemId);
+
+  if (currentIndex > 0) {
+    const prevItem = activeList[currentIndex - 1];
+    openInteractiveKeypad(prevItem.id, kpMode);
   }
 }
 
@@ -2489,14 +2776,13 @@ function applyKeypadValue() {
   }
 }
 
-// Autosave helper with debounce
 let autosaveTimeout = null;
 function triggerAutosaveDraft() {
   clearTimeout(autosaveTimeout);
   autosaveTimeout = setTimeout(saveTripDraft, 1800);
 }
 
-// --- 8. CASH DENOMINATIONS & DAY SETTLEMENT (Screenshot 2 Right) ---
+// --- 8. CASH DENOMINATIONS & DAY SETTLEMENT ---
 
 function toggleDenominationView() {
   const container = document.getElementById('denom-inputs-container');
@@ -2539,7 +2825,6 @@ function calculateTotalCashFromNotes() {
 }
 
 function recalculateCashSummary() {
-  // 1. Expected Sale Amount
   let expectedSales = 0;
   Object.entries(activeTripLines).forEach(([itemId, line]) => {
     const item = allItems.find(i => i.id === itemId);
@@ -2548,29 +2833,21 @@ function recalculateCashSummary() {
     expectedSales += (sold * rate);
   });
 
-  // 2. Cash from Notes
   const cashTotal = calculateTotalCashFromNotes();
   const denomBadge = document.getElementById('denom-total-badge');
   if (denomBadge) denomBadge.textContent = 'Total: ' + formatRupees(cashTotal);
 
-  // 3. PhonePe
   const phonepe = parseFloat(document.getElementById('phonepe-input')?.value) || 0;
-
-  // 4. Credit to shops
   const creditTotal = activeCreditEntries.reduce((sum, e) => sum + (e.amount || 0), 0);
-
-  // 5. Total accounted
   const totalAccounted = cashTotal + phonepe + creditTotal;
   const difference = totalAccounted - expectedSales;
 
-  // Update UI Elements
   document.getElementById('sum-exp-sales').textContent = formatRupees(expectedSales);
   document.getElementById('sum-cash-hand').textContent = formatRupees(cashTotal);
   document.getElementById('sum-phonepe').textContent = formatRupees(phonepe);
   document.getElementById('sum-credit').textContent = formatRupees(creditTotal);
   document.getElementById('sum-total-accounted').textContent = formatRupees(totalAccounted);
 
-  // Update Status Banner
   const banner = document.getElementById('settlement-diff-banner');
   if (Math.abs(difference) < 0.01) {
     banner.className = 'diff-banner diff-matched';
@@ -2602,7 +2879,6 @@ function renderTripCreditList() {
 
   document.getElementById('credit-count-badge').textContent = activeCreditEntries.length + ' shops';
 
-  // Populate Shop Select dropdown
   const select = document.getElementById('trip-credit-shop-select');
   select.innerHTML = '<option value="">Select Shop for Credit...</option>' + allShops.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
 }
@@ -2693,7 +2969,6 @@ async function saveMorningLoad() {
   btn.disabled = true;
   btn.textContent = 'Saving Morning Load...';
 
-  // Snapshot current active rates into trip lines
   Object.keys(activeTripLines).forEach(itemId => {
     const item = allItems.find(i => i.id === itemId);
     if (item) activeTripLines[itemId].rate = item.rate || 0;
@@ -2702,7 +2977,7 @@ async function saveMorningLoad() {
   await persistTripLines();
   const ok = await persistTripHeader('out');
   btn.disabled = false;
-  btn.textContent = '✓ Save Morning Load (Out)';
+  btn.textContent = '✓ Save Morning Load (Mark Out)';
 
   if (ok) {
     showToast('Morning load saved! Auto is now OUT on trip.');
@@ -2726,7 +3001,6 @@ async function saveDaySettlement() {
     if (val > 0) cashNotes[key] = val;
   });
 
-  // Save payments table
   const { error: pmtErr } = await sb.from('payments').upsert({
     trip_id: activeTrip.id,
     cash,
@@ -2742,9 +3016,8 @@ async function saveDaySettlement() {
     return;
   }
 
-  // Insert credit dues records
   for (const entry of activeCreditEntries) {
-    if (entry.id) continue; // Already saved
+    if (entry.id) continue;
     const { data: newDue, error: dueErr } = await sb.from('dues').insert({
       shop_id: entry.shop_id,
       trip_id: activeTrip.id,
@@ -2769,7 +3042,6 @@ async function saveDaySettlement() {
 }
 
 // --- 10. MENU BAR / PREDEFINED RATES SCREEN ---
-// "need a section that predefine the item value per case wise & per unit wise which is menu bar"
 
 let activeCategoryFilter = 'All';
 
@@ -2777,7 +3049,6 @@ function loadCatalogMenuScreen() {
   hideErrorMessage('items-screen-err');
   const isOwner = currentProfile?.role === 'owner';
 
-  // Toggle Add button visibility based on role
   const addBtn = document.getElementById('btn-open-add-item-modal');
   if (addBtn) addBtn.style.display = isOwner ? 'block' : 'none';
 
@@ -2788,7 +3059,6 @@ function loadCatalogMenuScreen() {
       : 'ℹ️ <strong>Staff mode:</strong> Viewing predefined rates per case &amp; per unit. (Read only)';
   }
 
-  // Render category pills
   renderCategoryFilterPills();
   renderCatalogItemsList();
 }
@@ -2826,7 +3096,7 @@ function renderCatalogItemsList() {
   });
 
   if (!filtered.length) {
-    container.innerHTML = `<div style="padding:24px;text-align:center;color:var(--txt-mut);font-size:var(--fs-sm);">No items match current filters.</div>`;
+    container.innerHTML = `<div style="padding:24px;text-align:center;color:var(--txt-mut);font-size:var(--fs-sm);grid-column:1/-1;">No items match current filters.</div>`;
     return;
   }
 
@@ -2888,7 +3158,6 @@ function renderCatalogItemsList() {
   });
 }
 
-// Live calculation handlers
 function onCaseRateInputChanged(itemId) {
   const caseRate = parseFloat(document.getElementById('inp-case-rate-' + itemId)?.value) || 0;
   const units = parseInt(document.getElementById('inp-units-' + itemId)?.value, 10) || 1;
@@ -2914,10 +3183,8 @@ async function savePredefinedItemRate(itemId) {
   const btn = document.getElementById('btn-save-rate-' + itemId);
   if (btn) btn.textContent = '...';
 
-  // Store units per case in local cache
   setUnitsPerCase(itemId, units);
 
-  // Update in Supabase
   let updateObj = { rate: caseRate };
   const { error } = await sb.from('items').update(updateObj).eq('id', itemId);
 
@@ -2927,7 +3194,6 @@ async function savePredefinedItemRate(itemId) {
     return;
   }
 
-  // Update in-memory item
   const item = allItems.find(i => i.id === itemId);
   if (item) {
     item.rate = caseRate;
@@ -2957,7 +3223,6 @@ async function toggleItemActiveState(itemId, newState) {
   renderCatalogItemsList();
 }
 
-// Add Item Modal Logic
 function openQuickItemModal() {
   document.getElementById('modal-item-name').value = '';
   document.getElementById('modal-item-case-rate').value = '';
@@ -3017,7 +3282,6 @@ async function submitNewItem() {
     return;
   }
 
-  // Cache units
   setUnitsPerCase(newItem.id, units);
   newItem.units_per_case = units;
   allItems.push(newItem);
@@ -3025,7 +3289,6 @@ async function submitNewItem() {
   closeQuickItemModal();
   showToast('Item ' + name + ' added successfully!');
 
-  // Refresh active views
   renderCatalogItemsList();
   renderLoadItemsTable();
 }
@@ -3064,11 +3327,10 @@ function renderShopsList(duesMap) {
   container.innerHTML = '';
 
   const search = (document.getElementById('shops-search-box')?.value || '').toLowerCase().trim();
-
   const filtered = allShops.filter(s => !search || s.name.toLowerCase().includes(search));
 
   if (!filtered.length) {
-    container.innerHTML = `<div style="padding:24px;text-align:center;color:var(--txt-mut);font-size:var(--fs-sm);">No shops found.</div>`;
+    container.innerHTML = `<div style="padding:24px;text-align:center;color:var(--txt-mut);font-size:var(--fs-sm);grid-column:1/-1;">No shops found.</div>`;
     return;
   }
 
@@ -3079,7 +3341,7 @@ function renderShopsList(duesMap) {
     card.innerHTML = `
       <div>
         <div class="auto-card-name">${shop.name}</div>
-        <div class="auto-card-driver">Tap to view ledger history</div>
+        <div class="auto-card-driver">Click to view ledger history</div>
       </div>
       <div style="font-size:var(--fs-lg);font-weight:800;color:${due > 0 ? 'var(--red-text)' : 'var(--grn-text)'};">
         ${formatRupees(due)}
@@ -3115,7 +3377,7 @@ async function openShopLedger(shop, currentDue) {
   container.innerHTML = '';
 
   if (!ledger || !ledger.length) {
-    container.innerHTML = `<div style="padding:20px;text-align:center;color:var(--txt-mut);font-size:var(--fs-sm);">No ledger entries yet.</div>`;
+    container.innerHTML = `<div style="padding:20px;text-align:center;color:var(--txt-mut);font-size:var(--fs-sm);max-width:500px;margin:0 auto;">No ledger entries yet.</div>`;
     return;
   }
 
@@ -3123,6 +3385,8 @@ async function openShopLedger(shop, currentDue) {
     const isCredit = row.kind === 'credit';
     const card = document.createElement('div');
     card.className = 'card';
+    card.style.maxWidth = '600px';
+    card.style.margin = '0 auto 10px';
     card.innerHTML = `
       <div style="display:flex;justify-content:space-between;align-items:center;">
         <span class="badge ${isCredit ? 'badge-out' : 'badge-returned'}">${isCredit ? 'Credit Given' : 'Payment Received'}</span>
@@ -3175,7 +3439,6 @@ async function submitReceivedPayment() {
   document.getElementById('recv-pmt-note').value = '';
   document.getElementById('recv-payment-card').style.display = 'none';
 
-  // Reload ledger
   const { data: duesData } = await sb.from('dues').select('kind, amount').eq('shop_id', selectedShopForDetail.id);
   const newDue = (duesData || []).reduce((sum, d) => sum + (d.kind === 'credit' ? d.amount : -d.amount), 0);
   openShopLedger(selectedShopForDetail, newDue);
@@ -3231,11 +3494,9 @@ async function onScanFilePicked(event, col) {
   showLoading('Reading paper sheet with AI... (5-20 sec)');
 
   try {
-    // Compress image client side to max 1600px, 0.8 JPEG quality
     const base64Str = await compressFileImage(file, 1600, 0.8);
     scanBase64Image = base64Str;
 
-    // Active catalog items for AI matching
     const itemCatalogPayload = allItems.filter(i => i.active).map(i => ({
       id: i.id,
       name: i.name,
@@ -3303,7 +3564,6 @@ function compressFileImage(file, maxDimension, quality) {
   });
 }
 
-// Matching Screenshot 3 Right (Camera Review)
 function openScanReviewScreen(col) {
   hideErrorMessage('scan-review-err');
   const imgDataUrl = 'data:image/jpeg;base64,' + scanBase64Image;
@@ -3330,7 +3590,7 @@ function openScanReviewScreen(col) {
         <div style="font-size:11px;color:var(--txt-dim);">Read: "${l.raw ?? l.qty}"</div>
       </div>
       <div class="col-cases" style="font-weight:700;">${l.qty}</div>
-      <div style="width:70px;text-align:right;">
+      <div style="width:75px;text-align:right;">
         <span class="badge ${l.sure ? 'badge-returned' : 'badge-warning'}">${l.sure ? 'Read' : 'Not sure'}</span>
       </div>
     `;
@@ -3339,7 +3599,6 @@ function openScanReviewScreen(col) {
 
   document.getElementById('scan-check-badge').textContent = uncertainCount > 0 ? (uncertainCount + ' to check') : 'Verified';
 
-  // Unmatched section
   const unmatchedContainer = document.getElementById('scan-unmatched-container');
   unmatchedContainer.innerHTML = '';
   const unmatched = scanResultData?.unmatched || [];
@@ -3384,7 +3643,6 @@ function confirmScanValues() {
   const lines = scanResultData?.lines || [];
   const unmatched = scanResultData?.unmatched || [];
 
-  // Check for items that already have existing quantities
   const willOverwrite = [];
   lines.forEach(l => {
     const existing = activeTripLines[l.item_id];
@@ -3400,7 +3658,6 @@ function confirmScanValues() {
     }
   }
 
-  // Apply scanned values
   lines.forEach(l => {
     if (!activeTripLines[l.item_id]) {
       activeTripLines[l.item_id] = { load_qty: 0, return_qty: 0, rate: 0, expr: '', retExpr: '' };
@@ -3419,7 +3676,6 @@ function confirmScanValues() {
     }
   });
 
-  // Apply mapped unmatched items
   unmatched.forEach((u, idx) => {
     const mappedId = document.getElementById('select-unmatched-' + idx)?.value;
     if (!mappedId) return;
@@ -3441,7 +3697,6 @@ function confirmScanValues() {
     }
   });
 
-  // If driver or CSO returned from scan
   if (scanResultData?.cso) document.getElementById('trip-cso').value = scanResultData.cso;
   if (scanResultData?.driver) document.getElementById('trip-driver').value = scanResultData.driver;
 
@@ -3492,7 +3747,6 @@ async function loadReportsData() {
 
   const tripIds = trips.map(t => t.id);
 
-  // Fetch trip lines and payments in parallel
   const [{ data: lines }, { data: payments }] = await Promise.all([
     sb.from('trip_lines').select('*').in('trip_id', tripIds),
     sb.from('payments').select('*').in('trip_id', tripIds)
@@ -3612,16 +3866,63 @@ async function loadReportsData() {
   `;
 }
 
-// Global Keyboard shortcuts
+// --- 14. DESKTOP KEYBOARD SHORTCUTS & USER EXPERIENCE ---
+
 document.addEventListener('keydown', (e) => {
+  // 1. Enter key on Login screen
   if (e.key === 'Enter' && document.getElementById('screen-login').classList.contains('active')) {
     handleLogin();
+    return;
   }
+
+  // 2. Escape key to dismiss modals / keypad
   if (e.key === 'Escape') {
     dismissKeypad();
     closeFullPhotoView();
     closeQuickItemModal();
     closeNewShopModal();
+    return;
+  }
+
+  // 3. Slash key '/' to focus search box when not already in an input
+  const activeTag = document.activeElement ? document.activeElement.tagName.toLowerCase() : '';
+  if (e.key === '/' && activeTag !== 'input' && activeTag !== 'textarea') {
+    e.preventDefault();
+    if (document.getElementById('screen-trip').classList.contains('active')) {
+      document.getElementById('load-search-box')?.focus();
+    } else if (document.getElementById('screen-items').classList.contains('active')) {
+      document.getElementById('catalog-search-box')?.focus();
+    } else if (document.getElementById('screen-shops').classList.contains('active')) {
+      document.getElementById('shops-search-box')?.focus();
+    }
+    return;
+  }
+
+  // 4. Desktop Physical Keypad Entry when Keypad Dock is Open
+  const keypadDock = document.getElementById('interactive-keypad');
+  if (keypadDock && keypadDock.style.display !== 'none' && kpTargetItemId) {
+    // If typing in another normal input field, do not capture keypad
+    if (activeTag === 'input' || activeTag === 'textarea') return;
+
+    if (e.key >= '0' && e.key <= '9') {
+      e.preventDefault();
+      pressKeypad(e.key);
+    } else if (e.key === '+') {
+      e.preventDefault();
+      pressKeypad('+');
+    } else if (e.key === 'Backspace') {
+      e.preventDefault();
+      pressKeypad('backspace');
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      pressKeypadNextItem();
+    } else if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      pressKeypadNextItem();
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      selectPreviousItem();
+    }
   }
 });
 </script>
