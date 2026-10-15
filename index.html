@@ -41,6 +41,31 @@
       --app-max-width: 580px;
     }
 
+    /* Light Theme (Sunlight Outdoor Mode for Morning Auto Loading) */
+    body.light-theme {
+      --bg: #f3f4f8;
+      --card-bg: #ffffff;
+      --card-sub: #f0f2f7;
+      --card-sel: #dbeafe;
+      --card-sel-border: #2563eb;
+      --bdr: #d1d5e2;
+      --bdr-light: #94a3b8;
+      --acc: #2563eb;
+      --acc-hover: #1d4ed8;
+      --grn: #16a34a;
+      --grn-bg: #dcfce7;
+      --grn-text: #15803d;
+      --red: #dc2626;
+      --red-bg: #fee2e2;
+      --red-text: #b91c1c;
+      --amber: #d97706;
+      --amber-bg: #fef3c7;
+      --amber-text: #b45309;
+      --txt: #0f172a;
+      --txt-mut: #475569;
+      --txt-dim: #64748b;
+    }
+
     * {
       box-sizing: border-box;
       margin: 0;
@@ -57,6 +82,7 @@
       min-height: 100dvh;
       line-height: 1.45;
       overscroll-behavior: none;
+      transition: background-color 0.2s ease, color 0.2s ease;
     }
 
     /* Custom Sleek Scrollbar */
@@ -89,7 +115,6 @@
       transition: max-width 0.2s ease;
     }
 
-    /* Responsive Breakpoints: Desktop & Tablet */
     @media (min-width: 768px) {
       :root {
         --app-max-width: 1100px;
@@ -98,10 +123,13 @@
       body {
         background-color: #080a0f;
       }
+      body.light-theme {
+        background-color: #e2e8f0;
+      }
       #app {
-        box-shadow: 0 0 50px rgba(0, 0, 0, 0.6);
-        border-left: 1px solid #1a1e2d;
-        border-right: 1px solid #1a1e2d;
+        box-shadow: 0 0 50px rgba(0, 0, 0, 0.4);
+        border-left: 1px solid var(--bdr);
+        border-right: 1px solid var(--bdr);
       }
     }
 
@@ -111,13 +139,13 @@
       }
     }
 
-    /* Desktop Navigation Header (Hidden on Mobile) */
+    /* Desktop Navigation Header */
     .desktop-header {
       display: none;
       position: sticky;
       top: 0;
       z-index: 60;
-      background: #111420;
+      background: var(--card-bg);
       border-bottom: 1px solid var(--bdr);
       padding: 12px 24px;
       align-items: center;
@@ -138,7 +166,7 @@
       font-size: 20px;
       font-weight: 800;
       letter-spacing: -0.3px;
-      color: #ffffff;
+      color: var(--txt);
     }
     .dh-sub {
       font-size: 12px;
@@ -149,7 +177,7 @@
       display: flex;
       align-items: center;
       gap: 6px;
-      background: var(--card-bg);
+      background: var(--card-sub);
       border: 1px solid var(--bdr);
       border-radius: 30px;
       padding: 4px 6px;
@@ -169,8 +197,8 @@
       transition: all 0.15s ease;
     }
     .dh-link:hover {
-      color: #ffffff;
-      background: var(--card-sub);
+      color: var(--txt);
+      background: var(--card-bg);
     }
     .dh-link.active {
       background: var(--acc);
@@ -180,7 +208,7 @@
     .dh-right {
       display: flex;
       align-items: center;
-      gap: 14px;
+      gap: 12px;
     }
     .dh-user-info {
       text-align: right;
@@ -189,7 +217,7 @@
       display: block;
       font-size: 14px;
       font-weight: 700;
-      color: #ffffff;
+      color: var(--txt);
     }
 
     @media (min-width: 768px) {
@@ -204,7 +232,7 @@
       flex-direction: column;
       min-height: 100vh;
       min-height: 100dvh;
-      padding-bottom: 74px; /* Space for bottom mobile nav */
+      padding-bottom: 74px;
     }
     .screen.active {
       display: flex;
@@ -215,7 +243,7 @@
 
     @media (min-width: 768px) {
       .screen {
-        padding-bottom: 24px; /* Desktop does not have bottom nav */
+        padding-bottom: 24px;
         min-height: calc(100vh - 65px);
         min-height: calc(100dvh - 65px);
       }
@@ -233,7 +261,7 @@
       }
     }
 
-    /* Top Bar (Mobile-first, adapts on Desktop) */
+    /* Top Bar */
     .topbar {
       position: sticky;
       top: 0;
@@ -264,6 +292,11 @@
       font-size: var(--fs-xs);
       color: var(--txt-mut);
     }
+    .topbar-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
     .topbar-btn {
       background: transparent;
       border: 1px solid var(--bdr);
@@ -274,7 +307,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 20px;
+      font-size: 18px;
       cursor: pointer;
       flex-shrink: 0;
       transition: background 0.15s;
@@ -284,13 +317,11 @@
     }
 
     @media (min-width: 768px) {
-      /* On desktop, screen topbar complements desktop header */
       .topbar {
         padding: 12px 24px;
-        background: #131724;
       }
       #home-logout-btn-mobile {
-        display: none; /* Handled by desktop header */
+        display: none;
       }
     }
 
@@ -303,7 +334,7 @@
       width: 100%;
       max-width: 580px;
       height: 64px;
-      background: #10131d;
+      background: var(--card-bg);
       border-top: 1px solid var(--bdr);
       display: flex;
       justify-content: space-around;
@@ -313,7 +344,7 @@
     }
     @media (min-width: 768px) {
       .bottom-menu {
-        display: none !important; /* Hide on desktop */
+        display: none !important;
       }
     }
 
@@ -344,7 +375,53 @@
       transform: scale(1.1);
     }
 
-    /* Standard Interactive Buttons */
+    /* Quick Auto Switcher Strip on Trip Sheet */
+    .auto-switcher-strip {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      padding: 6px 2px 10px;
+      margin-bottom: 8px;
+      -webkit-overflow-scrolling: touch;
+    }
+    .auto-switch-pill {
+      background: var(--card-sub);
+      border: 1px solid var(--bdr);
+      color: var(--txt-mut);
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+      transition: all 0.15s ease;
+      flex-shrink: 0;
+    }
+    .auto-switch-pill:hover {
+      color: var(--txt);
+      border-color: var(--bdr-light);
+    }
+    .auto-switch-pill.active {
+      background: var(--acc);
+      color: #ffffff;
+      border-color: var(--acc);
+      box-shadow: 0 2px 8px rgba(59, 130, 246, 0.4);
+    }
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+    .dot-none { background: #64748b; }
+    .dot-draft { background: #fbbf24; }
+    .dot-out { background: #60a5fa; }
+    .dot-returned { background: #22c55e; }
+
+    /* Buttons */
     .btn {
       display: inline-flex;
       align-items: center;
@@ -361,28 +438,22 @@
       transition: transform 0.1s, opacity 0.15s, background 0.15s;
       width: 100%;
     }
-    .btn:hover {
-      opacity: 0.95;
-    }
-    .btn:active {
-      transform: scale(0.98);
-      opacity: 0.9;
-    }
-    .btn:disabled {
-      opacity: 0.45;
-      cursor: not-allowed;
-      transform: none;
-    }
+    .btn:hover { opacity: 0.95; }
+    .btn:active { transform: scale(0.98); opacity: 0.9; }
+    .btn:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
     .btn-primary { background: var(--acc); color: #fff; }
     .btn-primary:hover { background: var(--acc-hover); }
     .btn-success { background: var(--grn); color: #fff; }
     .btn-danger { background: var(--red); color: #fff; }
+    .btn-whatsapp { background: #25D366; color: #ffffff; }
+    .btn-whatsapp:hover { background: #128C7E; }
     .btn-outline { background: transparent; border: 1.5px solid var(--bdr-light); color: var(--txt); }
     .btn-outline:hover { background: var(--card-sub); }
     .btn-ghost { background: var(--card-sub); color: var(--txt); }
-    .btn-ghost:hover { background: #232b3f; }
+    .btn-ghost:hover { background: rgba(255,255,255,0.08); }
     .btn-white { background: #ffffff; color: #0b0d13; }
     .btn-white:hover { background: #e5e7eb; }
+    body.light-theme .btn-white { background: #1e293b; color: #ffffff; }
     .btn-sm {
       min-height: 38px;
       height: 38px;
@@ -432,6 +503,9 @@
     .badge-returned { background: var(--grn-bg); color: var(--grn-text); }
     .badge-none { background: #1a1e2e; color: #64748b; }
     .badge-warning { background: var(--amber-bg); color: var(--amber-text); }
+    body.light-theme .badge-draft { background: #e2e8f0; color: #475569; }
+    body.light-theme .badge-out { background: #dbeafe; color: #1e40af; }
+    body.light-theme .badge-returned { background: #dcfce7; color: #166534; }
 
     /* Form Controls */
     .fg {
@@ -469,11 +543,6 @@
       .row-desktop-3 {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
-        gap: 14px;
-      }
-      .row-desktop-4 {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
         gap: 14px;
       }
     }
@@ -562,7 +631,7 @@
     .search-add-bar {
       display: flex;
       gap: 10px;
-      margin-bottom: 14px;
+      margin-bottom: 12px;
       align-items: center;
     }
     .search-input-wrap {
@@ -572,7 +641,7 @@
     .search-input-wrap input {
       height: 48px;
       padding-left: 42px;
-      padding-right: 14px;
+      padding-right: 36px;
       font-size: var(--fs-sm);
       border-radius: var(--radius-sm);
     }
@@ -585,22 +654,21 @@
       font-size: 18px;
       pointer-events: none;
     }
-    .search-shortcut-hint {
-      display: none;
+    .search-clear-btn {
       position: absolute;
       right: 12px;
       top: 50%;
       transform: translateY(-50%);
-      font-size: 11px;
+      background: none;
+      border: none;
       color: var(--txt-dim);
-      background: var(--bdr);
-      padding: 2px 6px;
-      border-radius: 4px;
+      font-size: 16px;
+      cursor: pointer;
+      display: none;
+      padding: 4px;
     }
-    @media (min-width: 768px) {
-      .search-shortcut-hint {
-        display: block;
-      }
+    .search-clear-btn:hover {
+      color: var(--txt);
     }
 
     .add-action-btn {
@@ -629,7 +697,7 @@
       border-radius: var(--radius-sm);
       padding: 4px;
       gap: 4px;
-      margin-bottom: 14px;
+      margin-bottom: 12px;
     }
     .tab-pill {
       flex: 1;
@@ -644,7 +712,7 @@
       text-align: center;
       transition: background 0.15s, color 0.15s;
     }
-    .tab-pill:hover { color: #ffffff; }
+    .tab-pill:hover { color: var(--txt); }
     .tab-pill.active {
       background: var(--acc);
       color: #ffffff;
@@ -697,7 +765,7 @@
       outline-offset: -2px;
     }
     .table-row.selected .item-name {
-      color: #ffffff;
+      color: var(--txt);
       font-weight: 700;
     }
     .table-row.has-qty .item-cases {
@@ -735,7 +803,7 @@
     }
 
     .group-divider {
-      background: #111420;
+      background: var(--card-sub);
       color: var(--txt-dim);
       font-size: 11px;
       font-weight: 700;
@@ -767,7 +835,7 @@
       color: var(--grn-text);
     }
 
-    /* Interactive Keypad (Responsive: Docked on Mobile, Floating/Docked on Desktop) */
+    /* Interactive Keypad with Quick Addition Chips */
     .keypad-dock {
       position: fixed;
       bottom: 0;
@@ -775,30 +843,28 @@
       transform: translateX(-50%);
       width: 100%;
       max-width: 580px;
-      background: #121622;
+      background: var(--card-bg);
       border-top: 1px solid var(--bdr-light);
-      box-shadow: 0 -8px 24px rgba(0,0,0,0.6);
+      box-shadow: 0 -8px 24px rgba(0,0,0,0.4);
       z-index: 100;
-      padding: 12px 16px 18px;
+      padding: 10px 14px 16px;
       border-radius: 18px 18px 0 0;
       display: none;
     }
 
-    /* Desktop Keypad Floating Card Style */
     @media (min-width: 768px) {
       .keypad-dock {
         left: auto;
         right: 28px;
         bottom: 28px;
         transform: none;
-        width: 350px;
+        width: 360px;
         border: 1.5px solid var(--bdr-light);
         border-radius: 18px;
-        box-shadow: 0 12px 36px rgba(0,0,0,0.7);
-        backdrop-filter: blur(10px);
+        box-shadow: 0 12px 36px rgba(0,0,0,0.5);
       }
       .keypad-spacer {
-        display: none !important; /* Not needed on desktop */
+        display: none !important;
       }
     }
 
@@ -806,7 +872,7 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 8px;
+      margin-bottom: 6px;
     }
     .kp-item-title {
       font-size: var(--fs-sm);
@@ -825,15 +891,38 @@
       cursor: pointer;
       padding: 2px 6px;
     }
-    .kp-close-btn:hover {
-      color: #ffffff;
+
+    /* Keypad Quick Batch Addition Chips */
+    .kp-chips-bar {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 8px;
     }
+    .kp-chip {
+      flex: 1;
+      height: 34px;
+      background: var(--card-sub);
+      border: 1px solid var(--bdr);
+      border-radius: 6px;
+      color: var(--acc);
+      font-size: 13px;
+      font-weight: 800;
+      cursor: pointer;
+      transition: background 0.1s, transform 0.05s;
+    }
+    .kp-chip:hover {
+      background: rgba(59, 130, 246, 0.15);
+    }
+    .kp-chip:active {
+      transform: scale(0.95);
+    }
+
     .kp-display-box {
-      background: var(--card-bg);
+      background: var(--card-sub);
       border: 1px solid var(--bdr);
       border-radius: var(--radius-sm);
-      padding: 10px 14px;
-      margin-bottom: 10px;
+      padding: 8px 14px;
+      margin-bottom: 8px;
       display: flex;
       align-items: baseline;
       justify-content: space-between;
@@ -841,7 +930,7 @@
     .kp-big-number {
       font-size: 32px;
       font-weight: 800;
-      color: #ffffff;
+      color: var(--txt);
       line-height: 1;
     }
     .kp-result-preview {
@@ -851,17 +940,17 @@
     }
     .kp-grid {
       display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      gap: 8px;
-      margin-bottom: 10px;
+      grid-template-columns: 1fr 1fr 1fr 1fr;
+      gap: 6px;
+      margin-bottom: 8px;
     }
     .kp-key {
-      height: 52px;
+      height: 48px;
       background: var(--card-sub);
       border: 1px solid var(--bdr);
       border-radius: var(--radius-sm);
-      color: #ffffff;
-      font-size: 22px;
+      color: var(--txt);
+      font-size: 20px;
       font-weight: 700;
       cursor: pointer;
       display: flex;
@@ -869,25 +958,25 @@
       justify-content: center;
       transition: background 0.1s, transform 0.05s;
     }
-    .kp-key:hover { background: #242d42; }
-    .kp-key:active { background: #2c3750; transform: scale(0.96); }
-    .kp-key-plus { background: #1e293b; color: #60a5fa; font-size: 26px; }
-    .kp-key-del { background: #291818; color: #f87171; font-size: 22px; }
+    .kp-key:hover { background: rgba(255,255,255,0.08); }
+    .kp-key:active { transform: scale(0.96); }
+    .kp-key-plus { background: rgba(59,130,246,0.18); color: var(--acc); font-size: 24px; }
+    .kp-key-del { background: rgba(239,68,68,0.15); color: var(--red-text); font-size: 20px; }
+    .kp-key-clr { background: var(--card-sub); color: var(--amber-text); font-size: 14px; font-weight: 800; }
     .kp-next-btn {
-      height: 50px;
-      background: #ffffff;
-      color: #0b0d13;
+      height: 48px;
+      background: var(--acc);
+      color: #ffffff;
       font-size: var(--fs-base);
       font-weight: 800;
       border-radius: var(--radius-sm);
       border: none;
       cursor: pointer;
       width: 100%;
-      margin-bottom: 8px;
+      margin-bottom: 6px;
       transition: background 0.1s;
     }
-    .kp-next-btn:hover { background: #e5e7eb; }
-    .kp-next-btn:active { background: #d1d5db; }
+    .kp-next-btn:hover { background: var(--acc-hover); }
     .kp-footer-summary {
       display: flex;
       justify-content: space-between;
@@ -934,7 +1023,7 @@
     .summary-metric-val {
       font-size: var(--fs-lg);
       font-weight: 800;
-      color: #ffffff;
+      color: var(--txt);
     }
 
     .account-summary-card {
@@ -954,8 +1043,8 @@
     }
     .account-row:last-child { border-bottom: none; }
     .account-row .lbl { color: var(--txt-mut); }
-    .account-row .val { font-weight: 700; color: #ffffff; }
-    .account-row.total .lbl { color: #ffffff; font-weight: 700; }
+    .account-row .val { font-weight: 700; color: var(--txt); }
+    .account-row.total .lbl { color: var(--txt); font-weight: 700; }
     .account-row.total .val { color: var(--acc); font-size: var(--fs-lg); font-weight: 800; }
 
     /* Difference Banners */
@@ -978,9 +1067,9 @@
       color: var(--grn-text);
     }
     .diff-matched {
-      background: #064e3b;
-      border: 1.5px solid #10b981;
-      color: #6ee7b7;
+      background: var(--grn-bg);
+      border: 1.5px solid var(--grn);
+      color: var(--grn-text);
     }
 
     /* Denomination inputs */
@@ -1036,7 +1125,7 @@
       white-space: nowrap;
       transition: background 0.15s, color 0.15s;
     }
-    .cat-pill:hover { background: #232b3e; color: #fff; }
+    .cat-pill:hover { background: rgba(59,130,246,0.15); color: var(--txt); }
     .cat-pill.active {
       background: var(--acc);
       color: #fff;
@@ -1076,7 +1165,7 @@
     .rate-item-name {
       font-size: var(--fs-base);
       font-weight: 700;
-      color: #ffffff;
+      color: var(--txt);
     }
     .rate-item-grp {
       font-size: var(--fs-xs);
@@ -1133,7 +1222,7 @@
     .scan-full-ovl {
       position: fixed;
       inset: 0;
-      background: rgba(0,0,0,0.92);
+      background: rgba(0,0,0,0.85);
       z-index: 200;
       display: flex;
       align-items: center;
@@ -1149,7 +1238,7 @@
       position: absolute;
       top: 16px;
       right: 16px;
-      background: rgba(255,255,255,0.2);
+      background: rgba(0,0,0,0.5);
       color: #fff;
       border: none;
       width: 44px;
@@ -1184,11 +1273,11 @@
       font-weight: 700;
     }
     .rpt-table tr:hover td {
-      background: rgba(255,255,255,0.02);
+      background: rgba(0,0,0,0.03);
     }
     .rpt-table tr:last-child td {
       font-weight: 800;
-      background: #111420;
+      background: var(--card-sub);
     }
 
     /* Global messages & overlays */
@@ -1215,7 +1304,7 @@
       font-size: var(--fs-sm);
       font-weight: 700;
       z-index: 300;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
       animation: fadeIn 0.2s ease-out;
     }
     @keyframes fadeIn {
@@ -1225,7 +1314,7 @@
     .loading-overlay {
       position: fixed;
       inset: 0;
-      background: rgba(12, 14, 20, 0.85);
+      background: rgba(12, 14, 20, 0.75);
       backdrop-filter: blur(4px);
       z-index: 250;
       display: flex;
@@ -1255,7 +1344,6 @@
       .rpt-table th { background: #eee !important; }
     }
 
-    /* Hide file input */
     .file-input-hidden {
       position: absolute;
       opacity: 0;
@@ -1297,6 +1385,11 @@
     </nav>
 
     <div class="dh-right">
+      <!-- Sun/Night Theme Toggle Button -->
+      <button class="topbar-btn" id="desktop-theme-btn" onclick="toggleAppTheme()" title="Toggle Sunlight / Night Mode">
+        ☀️
+      </button>
+
       <div class="dh-user-info">
         <span class="dh-user-name" id="dh-user-name">Welcome</span>
         <span class="badge badge-out" id="dh-user-badge" style="font-size:11px;padding:2px 8px;">Role</span>
@@ -1352,7 +1445,10 @@
           <div class="topbar-sub" id="home-date-display">Today</div>
         </div>
       </div>
-      <button class="topbar-btn" id="home-logout-btn-mobile" onclick="handleLogout()" title="Logout" style="font-size:16px;">🚪</button>
+      <div class="topbar-actions">
+        <button class="topbar-btn" id="mobile-theme-btn" onclick="toggleAppTheme()" title="Toggle Sunlight / Night Mode">☀️</button>
+        <button class="topbar-btn" id="home-logout-btn-mobile" onclick="handleLogout()" title="Logout" style="font-size:16px;">🚪</button>
+      </div>
     </div>
 
     <div class="scroll-body">
@@ -1379,10 +1475,10 @@
         <button class="btn btn-xs btn-outline" onclick="loadHomeScreenData()">↻ Refresh</button>
       </div>
 
-      <!-- Auto Cards Grid (Responsive 1-col on phone, multi-col on desktop) -->
+      <!-- Auto Cards Grid -->
       <div class="auto-grid" id="auto-cards-list"></div>
 
-      <!-- Quick Action Buttons on Desktop / Tablet -->
+      <!-- Quick Action Buttons -->
       <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));gap:12px;margin-top:12px;">
         <button class="btn btn-white" onclick="openNewTripPrompt()">+ New Trip Sheet</button>
         <button class="btn btn-ghost" onclick="showScreen('items')">🏷️ Predefined Rates Menu</button>
@@ -1402,11 +1498,21 @@
           <div class="topbar-sub" id="trip-header-sub">Load &amp; Settlement</div>
         </div>
       </div>
-      <span id="trip-status-badge" class="badge badge-none">Draft</span>
+      <div class="topbar-actions">
+        <!-- 1-Tap WhatsApp Share Button -->
+        <button class="topbar-btn" onclick="shareCurrentTripWhatsApp()" title="Share on WhatsApp" style="color:#25D366;font-size:20px;">
+          📲
+        </button>
+        <button class="topbar-btn" onclick="toggleAppTheme()" title="Toggle Sunlight Mode">☀️</button>
+        <span id="trip-status-badge" class="badge badge-none">Draft</span>
+      </div>
     </div>
 
     <div class="scroll-body" id="trip-scroll-area">
       <div id="trip-err" class="errmsg"></div>
+
+      <!-- Quick Auto Switcher Strip: Switch between Auto 1-6 in one tap without leaving trip screen! -->
+      <div class="auto-switcher-strip" id="auto-quick-switcher-strip"></div>
 
       <!-- Tab Switcher (Morning Load / Evening Return / Cash Settlement) -->
       <div class="tab-pills">
@@ -1417,7 +1523,7 @@
 
       <!-- TAB 1: MORNING LOAD -->
       <div id="tab-panel-load">
-        <!-- Trip Header Metadata Card (Responsive Multi-Column on Desktop) -->
+        <!-- Trip Header Metadata Card -->
         <div class="card">
           <div class="row-desktop-3">
             <div class="fg" style="margin-bottom:10px;">
@@ -1447,25 +1553,29 @@
           </div>
         </div>
 
-        <!-- Search Bar & Add Item Button -->
+        <!-- Search Bar & Add Item Button with Clear Button -->
         <div class="search-add-bar">
           <div class="search-input-wrap">
             <span class="search-icon">🔍</span>
-            <input type="search" id="load-search-box" placeholder="Search item to add value..." oninput="filterLoadItems()" />
-            <span class="search-shortcut-hint">Press / to search</span>
+            <input type="search" id="load-search-box" placeholder="Search item to add value..." oninput="onSearchInputTyped('load')" />
+            <button class="search-clear-btn" id="load-search-clear-btn" onclick="clearSearchInput('load')">✕</button>
           </div>
           <button class="add-action-btn" onclick="openQuickItemModal()" title="Add New Item to Catalog">+</button>
         </div>
 
         <!-- Action Row -->
         <div style="display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap;">
-          <button class="btn btn-outline btn-sm" id="btn-scan-load" onclick="startCameraScan('load')" style="flex:1;min-width:180px;">
+          <button class="btn btn-outline btn-sm" id="btn-scan-load" onclick="startCameraScan('load')" style="flex:1;min-width:160px;">
             📷 Scan Paper Sheet
           </button>
           <input type="file" accept="image/*" capture="environment" id="scan-file-input-load" class="file-input-hidden" onchange="onScanFilePicked(event, 'load')" />
 
           <button class="btn btn-ghost btn-sm" id="btn-toggle-show-all" onclick="toggleShowAllItems()" style="width:auto;">
             👁️ Show All Items
+          </button>
+
+          <button class="btn btn-whatsapp btn-sm" onclick="shareMorningLoadWhatsApp()" style="width:auto;gap:6px;">
+            📲 Share Load
           </button>
         </div>
 
@@ -1560,7 +1670,7 @@
       <!-- TAB 3: CASH & SETTLEMENT SUMMARY (Responsive 2-Col on Desktop) -->
       <div id="tab-panel-cash" style="display:none;">
         <div class="cash-desktop-layout">
-          <!-- Left Column on Desktop: Denominations & Credit -->
+          <!-- Left Column: Denominations & Credit -->
           <div class="cash-left-col">
             <!-- Top Mileage and Distance Indicator -->
             <div class="summary-metric-card" id="cash-mileage-card">
@@ -1614,7 +1724,7 @@
             </div>
           </div>
 
-          <!-- Right Column on Desktop: Sticky Account Summary -->
+          <!-- Right Column: Sticky Account Summary -->
           <div class="cash-sticky-summary">
             <div class="account-summary-card">
               <div class="card-title" style="margin-top:6px;">Settlement Summary</div>
@@ -1646,6 +1756,7 @@
             <!-- Action Buttons -->
             <div style="display:flex;flex-direction:column;gap:10px;">
               <button class="btn btn-white" id="btn-save-day" onclick="saveDaySettlement()">Save Day (Mark Returned)</button>
+              <button class="btn btn-whatsapp" onclick="shareDaySettlementWhatsApp()">📲 Share Settlement on WhatsApp</button>
               <button class="btn btn-outline" onclick="toggleDenominationView()">Edit Cash Count</button>
             </div>
           </div>
@@ -1664,7 +1775,10 @@
           <div class="topbar-sub">Predefined Case &amp; Unit Rates</div>
         </div>
       </div>
-      <button class="btn btn-xs btn-primary" id="btn-open-add-item-modal" onclick="openQuickItemModal()">+ Add Item</button>
+      <div class="topbar-actions">
+        <button class="topbar-btn" onclick="toggleAppTheme()" title="Toggle Sunlight Mode">☀️</button>
+        <button class="btn btn-xs btn-primary" id="btn-open-add-item-modal" onclick="openQuickItemModal()">+ Add Item</button>
+      </div>
     </div>
 
     <div class="scroll-body">
@@ -1674,8 +1788,8 @@
       <div class="search-add-bar">
         <div class="search-input-wrap">
           <span class="search-icon">🔍</span>
-          <input type="search" id="catalog-search-box" placeholder="Search beverages or brands..." oninput="filterCatalogItems()" />
-          <span class="search-shortcut-hint">Press / to search</span>
+          <input type="search" id="catalog-search-box" placeholder="Search beverages or brands..." oninput="onSearchInputTyped('catalog')" />
+          <button class="search-clear-btn" id="catalog-search-clear-btn" onclick="clearSearchInput('catalog')">✕</button>
         </div>
         <button class="add-action-btn" onclick="openQuickItemModal()" title="Add New Item">+</button>
       </div>
@@ -1684,7 +1798,7 @@
       <div class="category-pills" id="category-filter-pills"></div>
 
       <!-- Role Notice -->
-      <div id="role-notice-banner" style="background:#131d2e;border:1px solid #1e3a8a;border-radius:var(--radius-sm);padding:10px 14px;font-size:13px;color:#93c5fd;margin-bottom:14px;">
+      <div id="role-notice-banner" style="background:var(--card-sub);border:1px solid var(--bdr);border-radius:var(--radius-sm);padding:10px 14px;font-size:13px;color:var(--txt-mut);margin-bottom:14px;">
         ℹ️ Staff mode: Viewing predefined rates. (Owner can edit values).
       </div>
 
@@ -1703,7 +1817,10 @@
           <div class="topbar-sub">Pending Balances</div>
         </div>
       </div>
-      <button class="btn btn-xs btn-primary" onclick="openNewShopModal()">+ New Shop</button>
+      <div class="topbar-actions">
+        <button class="topbar-btn" onclick="toggleAppTheme()" title="Toggle Sunlight Mode">☀️</button>
+        <button class="btn btn-xs btn-primary" onclick="openNewShopModal()">+ New Shop</button>
+      </div>
     </div>
 
     <div class="scroll-body">
@@ -1712,8 +1829,8 @@
       <div class="search-add-bar">
         <div class="search-input-wrap">
           <span class="search-icon">🔍</span>
-          <input type="search" id="shops-search-box" placeholder="Search shops..." oninput="filterShopsList()" />
-          <span class="search-shortcut-hint">Press / to search</span>
+          <input type="search" id="shops-search-box" placeholder="Search shops..." oninput="onSearchInputTyped('shops')" />
+          <button class="search-clear-btn" id="shops-search-clear-btn" onclick="clearSearchInput('shops')">✕</button>
         </div>
         <button class="add-action-btn" onclick="openNewShopModal()" title="Add Shop">+</button>
       </div>
@@ -1731,6 +1848,9 @@
           <h1 id="shop-detail-name">Shop Name</h1>
           <div class="topbar-sub">Credit Ledger</div>
         </div>
+      </div>
+      <div class="topbar-actions">
+        <button class="topbar-btn" onclick="shareShopLedgerWhatsApp()" title="Share Ledger via WhatsApp" style="color:#25D366;font-size:20px;">📲</button>
       </div>
     </div>
 
@@ -1780,7 +1900,10 @@
           <div class="topbar-sub">Summary &amp; Audit</div>
         </div>
       </div>
-      <button class="btn btn-xs btn-outline" onclick="window.print()" style="gap:4px;">🖨️ Print / PDF</button>
+      <div class="topbar-actions">
+        <button class="topbar-btn" onclick="toggleAppTheme()" title="Toggle Sunlight Mode">☀️</button>
+        <button class="btn btn-xs btn-outline" onclick="window.print()" style="gap:4px;">🖨️ Print / PDF</button>
+      </div>
     </div>
 
     <div class="scroll-body">
@@ -1863,29 +1986,41 @@
       <button class="kp-close-btn" onclick="dismissKeypad()">✕</button>
     </div>
 
+    <!-- Quick Addition Chips: +5, +10, +20, +50, +100 for effortless batch entry! -->
+    <div class="kp-chips-bar">
+      <button class="kp-chip" onclick="quickAddBatch(5)">+5</button>
+      <button class="kp-chip" onclick="quickAddBatch(10)">+10</button>
+      <button class="kp-chip" onclick="quickAddBatch(20)">+20</button>
+      <button class="kp-chip" onclick="quickAddBatch(50)">+50</button>
+      <button class="kp-chip" onclick="quickAddBatch(100)">+100</button>
+    </div>
+
     <!-- Big Number Display -->
     <div class="kp-display-box">
       <div class="kp-big-number" id="kp-display-number">0</div>
       <div class="kp-result-preview" id="kp-display-preview"></div>
     </div>
 
-    <!-- 3x4 Phone Keypad (1-9, +, 0, Del) -->
+    <!-- 4-Column Keypad Layout with Clear and Batch Keys -->
     <div class="kp-grid">
       <button class="kp-key" onclick="pressKeypad('1')">1</button>
       <button class="kp-key" onclick="pressKeypad('2')">2</button>
       <button class="kp-key" onclick="pressKeypad('3')">3</button>
+      <button class="kp-key kp-key-clr" onclick="pressKeypad('clear')">CLR</button>
 
       <button class="kp-key" onclick="pressKeypad('4')">4</button>
       <button class="kp-key" onclick="pressKeypad('5')">5</button>
       <button class="kp-key" onclick="pressKeypad('6')">6</button>
+      <button class="kp-key kp-key-plus" onclick="pressKeypad('+')">+</button>
 
       <button class="kp-key" onclick="pressKeypad('7')">7</button>
       <button class="kp-key" onclick="pressKeypad('8')">8</button>
       <button class="kp-key" onclick="pressKeypad('9')">9</button>
-
-      <button class="kp-key kp-key-plus" onclick="pressKeypad('+')">+</button>
-      <button class="kp-key" onclick="pressKeypad('0')">0</button>
       <button class="kp-key kp-key-del" onclick="pressKeypad('backspace')">⌫</button>
+
+      <button class="kp-key" onclick="selectPreviousItem()" style="font-size:16px;">↑ Prev</button>
+      <button class="kp-key" onclick="pressKeypad('0')">0</button>
+      <button class="kp-key" onclick="pressKeypadNextItem()" style="grid-column:span 2;font-size:16px;">Next ↓</button>
     </div>
 
     <!-- Next Item Action Button -->
@@ -2018,7 +2153,7 @@ let currentPaymentData = null;
 
 // Keypad State
 let kpTargetItemId = null;
-let kpMode = 'load'; // 'load' or 'return'
+let kpMode = 'load';
 let kpExpression = '';
 
 // Scan State
@@ -2037,7 +2172,6 @@ const CASH_DENOMINATIONS = [
   { label: 'Change', key: 'change', value: 1 }
 ];
 
-// Standard units per case default fallbacks by category
 const GROUP_DEFAULT_UNITS = {
   '150ml': 30,
   '200ml': 24,
@@ -2047,6 +2181,44 @@ const GROUP_DEFAULT_UNITS = {
   '2.5Lt': 6,
   'Water': 24
 };
+
+// --- THEME MANAGEMENT (Sunlight Outdoor vs Night Mode) ---
+function initAppTheme() {
+  const savedTheme = localStorage.getItem('arjun_theme') || 'dark';
+  applyTheme(savedTheme);
+}
+
+function toggleAppTheme() {
+  const isLight = document.body.classList.contains('light-theme');
+  const newTheme = isLight ? 'dark' : 'light';
+  applyTheme(newTheme);
+  localStorage.setItem('arjun_theme', newTheme);
+  showToast(newTheme === 'light' ? '☀️ Sunlight Mode active' : '🌙 Night Mode active');
+}
+
+function applyTheme(theme) {
+  if (theme === 'light') {
+    document.body.classList.add('light-theme');
+    updateThemeIcons('🌙');
+  } else {
+    document.body.classList.remove('light-theme');
+    updateThemeIcons('☀️');
+  }
+}
+
+function updateThemeIcons(icon) {
+  const dBtn = document.getElementById('desktop-theme-btn');
+  const mBtn = document.getElementById('mobile-theme-btn');
+  if (dBtn) dBtn.textContent = icon;
+  if (mBtn) mBtn.textContent = icon;
+}
+
+// Sound / Vibration helper
+function triggerHaptic() {
+  if (navigator && navigator.vibrate) {
+    try { navigator.vibrate(25); } catch (e) {}
+  }
+}
 
 // --- HELPER UTILITIES ---
 
@@ -2100,7 +2272,6 @@ function evaluateMathExpression(expr) {
   return parts.reduce((sum, n) => sum + n, 0);
 }
 
-// LocalStorage helpers for item unit rates & cache
 function getUnitsPerCase(item) {
   if (item.units_per_case && item.units_per_case > 0) return item.units_per_case;
   const stored = localStorage.getItem('units_' + item.id);
@@ -2110,6 +2281,27 @@ function getUnitsPerCase(item) {
 
 function setUnitsPerCase(itemId, units) {
   localStorage.setItem('units_' + itemId, String(units));
+}
+
+// Search box helpers with clear button
+function onSearchInputTyped(prefix) {
+  const input = document.getElementById(prefix + '-search-box');
+  const clearBtn = document.getElementById(prefix + '-search-clear-btn');
+  if (clearBtn) {
+    clearBtn.style.display = input && input.value ? 'block' : 'none';
+  }
+  if (prefix === 'load') renderLoadItemsTable();
+  if (prefix === 'catalog') renderCatalogItemsList();
+  if (prefix === 'shops') loadShopsListScreen();
+}
+
+function clearSearchInput(prefix) {
+  const input = document.getElementById(prefix + '-search-box');
+  if (input) {
+    input.value = '';
+    onSearchInputTyped(prefix);
+    input.focus();
+  }
 }
 
 // Screen Routing
@@ -2122,17 +2314,14 @@ function showScreen(name) {
     window.scrollTo(0, 0);
   }
 
-  // Update Mobile Bottom Nav state
   document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
   const navBtn = document.getElementById('nav-btn-' + name);
   if (navBtn) navBtn.classList.add('active');
 
-  // Update Desktop Top Nav state
   document.querySelectorAll('.dh-link').forEach(l => l.classList.remove('active'));
   const dhBtn = document.getElementById('dh-btn-' + name);
   if (dhBtn) dhBtn.classList.add('active');
 
-  // Screen specific hooks
   if (name === 'home') {
     loadHomeScreenData();
   } else if (name === 'items') {
@@ -2202,7 +2391,6 @@ async function loadUserProfileAndBootstrap() {
 
   currentProfile = profile;
 
-  // Update Desktop Header user info
   const dhName = document.getElementById('dh-user-name');
   const dhRole = document.getElementById('dh-user-role');
   const dhBadge = document.getElementById('dh-user-badge');
@@ -2214,9 +2402,9 @@ async function loadUserProfileAndBootstrap() {
     dhBadge.className = 'badge ' + (currentProfile.role === 'owner' ? 'badge-out' : 'badge-draft');
   }
 
-  // Load Seeded Tables: Autos, Items, Shops
   await Promise.all([fetchAutos(), fetchCatalogItems(), fetchShops()]);
   hideLoading();
+  initAppTheme();
   showScreen('home');
 }
 
@@ -2254,8 +2442,6 @@ async function loadHomeScreenData() {
   }
 
   const todayStr = getTodayISODate();
-
-  // Load trips for today
   const { data: trips, error } = await sb.from('trips').select('*').eq('trip_date', todayStr);
   if (error) {
     showErrorMessage('home-err', 'Could not load trips: ' + error.message);
@@ -2277,14 +2463,12 @@ async function loadHomeScreenData() {
   document.getElementById('stat-out').textContent = countOut;
   document.getElementById('stat-ret').textContent = countReturned;
 
-  // Total pending dues across all shops
   const { data: duesData } = await sb.from('dues').select('kind, amount');
   const totalPendingDues = (duesData || []).reduce((sum, d) => {
     return sum + (d.kind === 'credit' ? d.amount : -d.amount);
   }, 0);
   document.getElementById('stat-dues').textContent = formatRupees(totalPendingDues);
 
-  // Render Auto 1 to Auto 6 Cards (Responsive)
   const container = document.getElementById('auto-cards-list');
   container.innerHTML = '';
 
@@ -2335,7 +2519,7 @@ function openCurrentOrLatestTrip() {
   }
 }
 
-// --- 4. TRIP SHEET CONTROLLER ---
+// --- 4. TRIP SHEET CONTROLLER & AUTO SWITCHER STRIP ---
 
 async function openTripForAuto(auto, existingTrip) {
   showLoading('Loading trip...');
@@ -2362,7 +2546,6 @@ async function openTripForAuto(auto, existingTrip) {
   } else {
     activeTrip = existingTrip;
 
-    // Fetch existing lines
     const { data: lines } = await sb.from('trip_lines').select('*').eq('trip_id', activeTrip.id);
     (lines || []).forEach(l => {
       activeTripLines[l.item_id] = {
@@ -2374,11 +2557,9 @@ async function openTripForAuto(auto, existingTrip) {
       };
     });
 
-    // Fetch payment data
     const { data: pmt } = await sb.from('payments').select('*').eq('trip_id', activeTrip.id).maybeSingle();
     currentPaymentData = pmt;
 
-    // Fetch credit dues for this trip
     const { data: dues } = await sb.from('dues').select('*, shops(name)').eq('trip_id', activeTrip.id).eq('kind', 'credit');
     activeCreditEntries = (dues || []).map(d => ({
       id: d.id,
@@ -2392,11 +2573,48 @@ async function openTripForAuto(auto, existingTrip) {
   renderTripSheetUI(auto);
 }
 
+// 1-Tap Quick Auto Switcher Strip rendering
+async function renderAutoQuickSwitcher() {
+  const strip = document.getElementById('auto-quick-switcher-strip');
+  if (!strip) return;
+
+  const todayStr = getTodayISODate();
+  const { data: todayTrips } = await sb.from('trips').select('auto_id, status').eq('trip_date', todayStr);
+  const tripMap = {};
+  (todayTrips || []).forEach(t => { tripMap[t.auto_id] = t.status; });
+
+  strip.innerHTML = allAutos.map(auto => {
+    const st = tripMap[auto.id] || 'none';
+    const isActive = activeTrip && activeTrip.auto_id === auto.id;
+    return `
+      <button class="auto-switch-pill ${isActive ? 'active' : ''}" onclick="quickSwitchAuto('${auto.id}')">
+        <span class="status-dot dot-${st}"></span>
+        <span>${auto.name}</span>
+      </button>
+    `;
+  }).join('');
+}
+
+async function quickSwitchAuto(targetAutoId) {
+  triggerHaptic();
+  if (activeTrip && activeTrip.auto_id === targetAutoId) return;
+
+  // Autosave current trip before switching
+  await persistTripLines();
+  await persistTripHeader(activeTrip.status || 'draft');
+
+  const auto = allAutos.find(a => a.id === targetAutoId);
+  if (!auto) return;
+
+  const todayStr = getTodayISODate();
+  const { data: existingTrip } = await sb.from('trips').select('*').eq('trip_date', todayStr).eq('auto_id', auto.id).maybeSingle();
+  openTripForAuto(auto, existingTrip);
+}
+
 function renderTripSheetUI(auto) {
   document.getElementById('trip-header-title').textContent = (auto?.name || 'Auto') + ' Trip';
   document.getElementById('trip-date').value = activeTrip.trip_date || getTodayISODate();
 
-  // Populate Auto dropdown
   const autoSelect = document.getElementById('trip-auto-select');
   autoSelect.innerHTML = allAutos.map(a => `<option value="${a.id}" ${a.id === activeTrip.auto_id ? 'selected' : ''}>${a.name}</option>`).join('');
 
@@ -2407,10 +2625,9 @@ function renderTripSheetUI(auto) {
   document.getElementById('trip-closekm').value = activeTrip.close_km || '';
   document.getElementById('trip-diesel-eve').value = activeTrip.diesel_l || '';
 
-  // Badge
   updateTripStatusBadge(activeTrip.status);
 
-  // Render subcomponents
+  renderAutoQuickSwitcher();
   renderLoadItemsTable();
   renderReturnItemsTable();
   renderDenominationRows();
@@ -2418,7 +2635,6 @@ function renderTripSheetUI(auto) {
   calculateTripMileage();
   recalculateCashSummary();
 
-  // Switch to Morning Load by default or Return if out
   if (activeTrip.status === 'out') {
     setTripTab('return');
   } else if (activeTrip.status === 'returned') {
@@ -2439,6 +2655,7 @@ function updateTripStatusBadge(status) {
 }
 
 function setTripTab(tabName) {
+  triggerHaptic();
   dismissKeypad();
   ['load', 'return', 'cash'].forEach(t => {
     document.getElementById('tab-panel-' + t).style.display = (t === tabName) ? 'block' : 'none';
@@ -2455,10 +2672,7 @@ function setTripTab(tabName) {
 
 function onTripAutoSelectChanged() {
   const autoId = document.getElementById('trip-auto-select').value;
-  const auto = allAutos.find(a => a.id === autoId);
-  if (auto) {
-    document.getElementById('trip-driver').value = auto.default_driver || '';
-  }
+  quickSwitchAuto(autoId);
 }
 
 // --- 5. MORNING LOAD TABLE & KEYPAD INTERACTION ---
@@ -2466,6 +2680,7 @@ function onTripAutoSelectChanged() {
 let showAllLoadItems = false;
 
 function toggleShowAllItems() {
+  triggerHaptic();
   showAllLoadItems = !showAllLoadItems;
   const btn = document.getElementById('btn-toggle-show-all');
   if (btn) btn.textContent = showAllLoadItems ? '👁️ Show Active Only' : '👁️ Show All Items';
@@ -2615,7 +2830,6 @@ function calculateTripMileage() {
     box.style.display = 'none';
   }
 
-  // Update in Cash tab
   document.getElementById('cash-dist-val').textContent = dist > 0 ? (dist.toFixed(1) + ' km') : '0 km';
   document.getElementById('cash-mileage-val').textContent = (diesel > 0 && dist > 0) ? (mileage.toFixed(1) + ' km/L') : '-';
 }
@@ -2625,9 +2839,10 @@ function proceedToCashTab() {
   recalculateCashSummary();
 }
 
-// --- 7. INTERACTIVE NUMBER KEYPAD & DESKTOP KEYBOARD SUPPORT ---
+// --- 7. KEYPAD & QUICK BATCH CHIPS (+5, +10, +20, +50, +100) ---
 
 function openInteractiveKeypad(itemId, mode) {
+  triggerHaptic();
   kpTargetItemId = itemId;
   kpMode = mode;
 
@@ -2644,12 +2859,10 @@ function openInteractiveKeypad(itemId, mode) {
 
   updateKeypadDisplay();
 
-  // Show keypad and spacer on mobile
   document.getElementById('interactive-keypad').style.display = 'block';
   const spacer = document.getElementById(mode === 'load' ? 'load-keypad-spacer' : 'return-keypad-spacer');
   if (spacer) spacer.style.display = 'block';
 
-  // Highlight active row
   highlightActiveRow();
 }
 
@@ -2688,7 +2901,6 @@ function updateKeypadDisplay() {
     prev.textContent = '';
   }
 
-  // Update cases counter in footer
   let totalCases = 0;
   Object.values(activeTripLines).forEach(l => {
     totalCases += (kpMode === 'load' ? (l.load_qty || 0) : (l.return_qty || 0));
@@ -2696,9 +2908,26 @@ function updateKeypadDisplay() {
   document.getElementById('kp-footer-cases').textContent = 'Total Cases: ' + totalCases;
 }
 
+// Quick batch chip addition (+5, +10, +20, etc.)
+function quickAddBatch(amount) {
+  triggerHaptic();
+  if (!kpExpression || kpExpression === '0') {
+    kpExpression = String(amount);
+  } else if (kpExpression.endsWith('+')) {
+    kpExpression += String(amount);
+  } else {
+    kpExpression += '+' + amount;
+  }
+  updateKeypadDisplay();
+  applyKeypadValue();
+}
+
 function pressKeypad(key) {
+  triggerHaptic();
   if (key === 'backspace') {
     kpExpression = kpExpression.slice(0, -1);
+  } else if (key === 'clear') {
+    kpExpression = '';
   } else if (key === '+') {
     if (kpExpression && !kpExpression.endsWith('+')) {
       kpExpression += '+';
@@ -2712,6 +2941,7 @@ function pressKeypad(key) {
 }
 
 function pressKeypadNextItem() {
+  triggerHaptic();
   applyKeypadValue();
 
   const activeList = kpMode === 'load' ? allItems : allItems.filter(i => (activeTripLines[i.id]?.load_qty || 0) > 0);
@@ -2726,6 +2956,7 @@ function pressKeypadNextItem() {
 }
 
 function selectPreviousItem() {
+  triggerHaptic();
   applyKeypadValue();
   const activeList = kpMode === 'load' ? allItems : allItems.filter(i => (activeTripLines[i.id]?.load_qty || 0) > 0);
   const currentIndex = activeList.findIndex(i => i.id === kpTargetItemId);
@@ -2861,7 +3092,6 @@ function recalculateCashSummary() {
   }
 }
 
-// Credit Entries
 function renderTripCreditList() {
   const container = document.getElementById('trip-credit-items-list');
   container.innerHTML = '';
@@ -2961,6 +3191,7 @@ async function saveTripDraft() {
   await persistTripLines();
   await persistTripHeader(activeTrip.status || 'draft');
   showToast('Trip draft saved.');
+  renderAutoQuickSwitcher();
 }
 
 async function saveMorningLoad() {
@@ -2982,6 +3213,7 @@ async function saveMorningLoad() {
   if (ok) {
     showToast('Morning load saved! Auto is now OUT on trip.');
     setTripTab('return');
+    renderAutoQuickSwitcher();
   }
 }
 
@@ -3037,11 +3269,115 @@ async function saveDaySettlement() {
 
   if (ok) {
     showToast('Day settled! Auto marked as RETURNED.');
+    renderAutoQuickSwitcher();
     showScreen('home');
   }
 }
 
-// --- 10. MENU BAR / PREDEFINED RATES SCREEN ---
+// --- 10. WHATSAPP INSTANT SHARING (EVERYDAY WORKFLOW SUPERPOWER) ---
+
+function shareMorningLoadWhatsApp() {
+  if (!activeTrip) return;
+  const auto = allAutos.find(a => a.id === activeTrip.auto_id);
+  const autoName = auto?.name || 'Auto';
+  const driver = document.getElementById('trip-driver').value || 'Driver';
+  const dateStr = document.getElementById('trip-date').value || getTodayISODate();
+
+  let message = `🚚 *ARJUN TRADERS - MORNING LOAD*\n`;
+  message += `📅 *Date:* ${dateStr}\n`;
+  message += `🛺 *Vehicle:* ${autoName}\n`;
+  message += `👤 *Driver:* ${driver}\n`;
+  message += `⏱️ *Start KM:* ${document.getElementById('trip-startkm').value || '-'}\n`;
+  message += `⛽ *Diesel:* ${document.getElementById('trip-diesel-load').value || '-'} L\n\n`;
+  message += `📦 *LOADED CASES:*\n`;
+
+  let totalCases = 0;
+  let hasLines = false;
+  allItems.forEach(item => {
+    const qty = activeTripLines[item.id]?.load_qty || 0;
+    if (qty > 0) {
+      hasLines = true;
+      totalCases += qty;
+      message += `• ${item.name}: *${qty} cases*\n`;
+    }
+  });
+
+  if (!hasLines) {
+    alert('Please enter morning load quantities first.');
+    return;
+  }
+
+  message += `\n*TOTAL LOAD: ${totalCases} CASES*`;
+  const url = 'https://api.whatsapp.com/send?text=' + encodeURIComponent(message);
+  window.open(url, '_blank');
+}
+
+function shareDaySettlementWhatsApp() {
+  if (!activeTrip) return;
+  const auto = allAutos.find(a => a.id === activeTrip.auto_id);
+  const autoName = auto?.name || 'Auto';
+  const driver = document.getElementById('trip-driver').value || 'Driver';
+  const dateStr = document.getElementById('trip-date').value || getTodayISODate();
+
+  let expected = 0;
+  allItems.filter(i => (activeTripLines[i.id]?.load_qty || 0) > 0).forEach(item => {
+    const l = activeTripLines[item.id];
+    expected += (l.load_qty - l.return_qty) * (l.rate || item.rate || 0);
+  });
+
+  const cash = calculateTotalCashFromNotes();
+  const phonepe = parseFloat(document.getElementById('phonepe-input')?.value) || 0;
+  const credit = activeCreditEntries.reduce((s, e) => s + e.amount, 0);
+  const total = cash + phonepe + credit;
+  const diff = total - expected;
+
+  let message = `📋 *ARJUN TRADERS - DAY SETTLEMENT*\n`;
+  message += `📅 *Date:* ${dateStr}\n`;
+  message += `🛺 *Auto:* ${autoName} (${driver})\n`;
+  message += `🛣️ *Distance:* ${document.getElementById('cash-dist-val').textContent}\n`;
+  message += `⛽ *Mileage:* ${document.getElementById('cash-mileage-val').textContent}\n\n`;
+  message += `💰 *FINANCIAL SUMMARY:*\n`;
+  message += `• Expected Sales: *${formatRupees(expected)}*\n`;
+  message += `• Cash in hand: *${formatRupees(cash)}*\n`;
+  message += `• PhonePe UPI: *${formatRupees(phonepe)}*\n`;
+  message += `• Shop Credit: *${formatRupees(credit)}*\n`;
+  message += `• Total Accounted: *${formatRupees(total)}*\n\n`;
+
+  if (Math.abs(diff) < 0.01) {
+    message += `✅ *STATUS: MATCHED PERFECTLY!*`;
+  } else if (diff < 0) {
+    message += `⚠️ *STATUS: SHORT BY ${formatRupees(Math.abs(diff))}*`;
+  } else {
+    message += `🟢 *STATUS: EXTRA ${formatRupees(diff)}*`;
+  }
+
+  const url = 'https://api.whatsapp.com/send?text=' + encodeURIComponent(message);
+  window.open(url, '_blank');
+}
+
+function shareCurrentTripWhatsApp() {
+  const activeTab = document.getElementById('tab-btn-cash').classList.contains('active') ? 'cash' : 'load';
+  if (activeTab === 'cash') {
+    shareDaySettlementWhatsApp();
+  } else {
+    shareMorningLoadWhatsApp();
+  }
+}
+
+function shareShopLedgerWhatsApp() {
+  if (!selectedShopForDetail) return;
+  const due = document.getElementById('shop-detail-due-val').textContent;
+  let message = `🏢 *ARJUN TRADERS - STATEMENT OF DUES*\n`;
+  message += `🏪 *Shop:* ${selectedShopForDetail.name}\n`;
+  message += `📅 *Date:* ${getTodayISODate()}\n\n`;
+  message += `🔴 *CURRENT BALANCE DUE: ${due}*\n\n`;
+  message += `Kindly arrange for payment at your earliest convenience. Thank you for your business!`;
+
+  const url = 'https://api.whatsapp.com/send?text=' + encodeURIComponent(message);
+  window.open(url, '_blank');
+}
+
+// --- 11. MENU BAR / PREDEFINED RATES SCREEN ---
 
 let activeCategoryFilter = 'All';
 
@@ -3073,6 +3409,7 @@ function renderCategoryFilterPills() {
 }
 
 function selectCategoryFilter(cat) {
+  triggerHaptic();
   activeCategoryFilter = cat;
   renderCategoryFilterPills();
   renderCatalogItemsList();
@@ -3293,7 +3630,7 @@ async function submitNewItem() {
   renderLoadItemsTable();
 }
 
-// --- 11. SHOPS & DUES MANAGEMENT ---
+// --- 12. SHOPS & DUES MANAGEMENT ---
 
 let selectedShopForDetail = null;
 
@@ -3316,10 +3653,6 @@ async function loadShopsListScreen() {
   });
 
   renderShopsList(duesMap);
-}
-
-function filterShopsList() {
-  loadShopsListScreen();
 }
 
 function renderShopsList(duesMap) {
@@ -3476,7 +3809,7 @@ async function submitNewShop() {
   renderTripCreditList();
 }
 
-// --- 12. CAMERA SHEET SCAN INTEGRATION ---
+// --- 13. CAMERA SHEET SCAN INTEGRATION ---
 
 function startCameraScan(col) {
   scanColumn = col;
@@ -3707,7 +4040,7 @@ function confirmScanValues() {
   showToast('Scanned quantities filled into sheet!');
 }
 
-// --- 13. DISTRIBUTION REPORTS SCREEN ---
+// --- 14. DISTRIBUTION REPORTS SCREEN ---
 
 function initReportsDateRange() {
   const today = getTodayISODate();
@@ -3866,16 +4199,14 @@ async function loadReportsData() {
   `;
 }
 
-// --- 14. DESKTOP KEYBOARD SHORTCUTS & USER EXPERIENCE ---
+// --- 15. DESKTOP KEYBOARD SHORTCUTS & USER EXPERIENCE ---
 
 document.addEventListener('keydown', (e) => {
-  // 1. Enter key on Login screen
   if (e.key === 'Enter' && document.getElementById('screen-login').classList.contains('active')) {
     handleLogin();
     return;
   }
 
-  // 2. Escape key to dismiss modals / keypad
   if (e.key === 'Escape') {
     dismissKeypad();
     closeFullPhotoView();
@@ -3884,7 +4215,6 @@ document.addEventListener('keydown', (e) => {
     return;
   }
 
-  // 3. Slash key '/' to focus search box when not already in an input
   const activeTag = document.activeElement ? document.activeElement.tagName.toLowerCase() : '';
   if (e.key === '/' && activeTag !== 'input' && activeTag !== 'textarea') {
     e.preventDefault();
@@ -3898,10 +4228,8 @@ document.addEventListener('keydown', (e) => {
     return;
   }
 
-  // 4. Desktop Physical Keypad Entry when Keypad Dock is Open
   const keypadDock = document.getElementById('interactive-keypad');
   if (keypadDock && keypadDock.style.display !== 'none' && kpTargetItemId) {
-    // If typing in another normal input field, do not capture keypad
     if (activeTag === 'input' || activeTag === 'textarea') return;
 
     if (e.key >= '0' && e.key <= '9') {
@@ -3925,6 +4253,9 @@ document.addEventListener('keydown', (e) => {
     }
   }
 });
+
+// Initialize on page load
+initAppTheme();
 </script>
 </body>
 </html>
