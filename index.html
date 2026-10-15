@@ -1,0 +1,3629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#0d1117" />
+  <title>Arjun Traders - Trip Sheet</title>
+  <!-- Supabase JS v2 pinned -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+
+  <style>
+    :root {
+      --bg: #0c0e14;
+      --card-bg: #141824;
+      --card-sub: #1b2132;
+      --card-sel: #1a3260;
+      --card-sel-border: #3b82f6;
+      --bdr: #262c3e;
+      --bdr-light: #343c54;
+      --acc: #3b82f6;
+      --acc-hover: #2563eb;
+      --grn: #22c55e;
+      --grn-bg: #14532d;
+      --grn-text: #4ade80;
+      --red: #ef4444;
+      --red-bg: #450a0a;
+      --red-text: #f87171;
+      --amber: #f59e0b;
+      --amber-bg: #451a03;
+      --amber-text: #fbbf24;
+      --txt: #f3f4f6;
+      --txt-mut: #94a3b8;
+      --txt-dim: #64748b;
+      --radius: 12px;
+      --radius-sm: 8px;
+      --fs-base: 18px;
+      --fs-sm: 15px;
+      --fs-xs: 13px;
+      --fs-lg: 22px;
+      --fs-xl: 28px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html, body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      font-size: var(--fs-base);
+      background-color: var(--bg);
+      color: var(--txt);
+      min-height: 100vh;
+      min-height: 100dvh;
+      line-height: 1.4;
+      overscroll-behavior: none;
+    }
+
+    #app {
+      max-width: 580px;
+      margin: 0 auto;
+      min-height: 100vh;
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      background: var(--bg);
+    }
+
+    /* Screen Management */
+    .screen {
+      display: none;
+      flex-direction: column;
+      min-height: 100vh;
+      min-height: 100dvh;
+      padding-bottom: 70px; /* Space for bottom navigation */
+    }
+    .screen.active {
+      display: flex;
+    }
+    .screen.no-nav {
+      padding-bottom: 0;
+    }
+
+    .scroll-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 14px 16px;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    /* Top Bar */
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      background: var(--card-bg);
+      border-bottom: 1px solid var(--bdr);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      flex-shrink: 0;
+    }
+    .topbar-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex: 1;
+      overflow: hidden;
+    }
+    .topbar h1 {
+      font-size: var(--fs-lg);
+      font-weight: 700;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .topbar-sub {
+      font-size: var(--fs-xs);
+      color: var(--txt-mut);
+    }
+    .topbar-btn {
+      background: transparent;
+      border: 1px solid var(--bdr);
+      color: var(--txt);
+      width: 40px;
+      height: 40px;
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: background 0.15s;
+    }
+    .topbar-btn:active {
+      background: var(--card-sub);
+    }
+
+    /* Bottom Navigation / Menu Bar */
+    .bottom-menu {
+      position: fixed;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100%;
+      max-width: 580px;
+      height: 64px;
+      background: #10131d;
+      border-top: 1px solid var(--bdr);
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      z-index: 50;
+      padding: 0 4px;
+    }
+    .menu-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      color: var(--txt-mut);
+      background: none;
+      border: none;
+      cursor: pointer;
+      flex: 1;
+      height: 100%;
+      font-size: 11px;
+      font-weight: 600;
+      transition: color 0.15s;
+    }
+    .menu-item .icon {
+      font-size: 20px;
+      line-height: 1;
+    }
+    .menu-item.active {
+      color: var(--acc);
+    }
+    .menu-item.active .icon {
+      transform: scale(1.1);
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      min-height: 50px;
+      padding: 10px 20px;
+      border-radius: var(--radius);
+      border: none;
+      cursor: pointer;
+      font-size: var(--fs-base);
+      font-weight: 700;
+      text-align: center;
+      transition: transform 0.1s, opacity 0.15s;
+      width: 100%;
+    }
+    .btn:active {
+      transform: scale(0.98);
+      opacity: 0.9;
+    }
+    .btn:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      transform: none;
+    }
+    .btn-primary {
+      background: var(--acc);
+      color: #fff;
+    }
+    .btn-success {
+      background: var(--grn);
+      color: #fff;
+    }
+    .btn-danger {
+      background: var(--red);
+      color: #fff;
+    }
+    .btn-outline {
+      background: transparent;
+      border: 1.5px solid var(--bdr-light);
+      color: var(--txt);
+    }
+    .btn-ghost {
+      background: var(--card-sub);
+      color: var(--txt);
+    }
+    .btn-white {
+      background: #ffffff;
+      color: #0b0d13;
+    }
+    .btn-white:active {
+      background: #e2e8f0;
+    }
+    .btn-sm {
+      min-height: 38px;
+      height: 38px;
+      font-size: var(--fs-sm);
+      padding: 0 14px;
+      border-radius: var(--radius-sm);
+      width: auto;
+    }
+    .btn-xs {
+      min-height: 32px;
+      height: 32px;
+      font-size: var(--fs-xs);
+      padding: 0 10px;
+      border-radius: 6px;
+      width: auto;
+    }
+
+    /* Cards */
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--bdr);
+      border-radius: var(--radius);
+      padding: 14px;
+      margin-bottom: 12px;
+    }
+    .card-title {
+      font-size: var(--fs-sm);
+      font-weight: 700;
+      color: var(--txt-mut);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 10px;
+    }
+
+    /* Badges */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: capitalize;
+    }
+    .badge-draft { background: #2a3148; color: #94a3b8; }
+    .badge-out { background: #1e3a8a; color: #93c5fd; }
+    .badge-returned { background: var(--grn-bg); color: var(--grn-text); }
+    .badge-none { background: #1a1e2e; color: #64748b; }
+    .badge-warning { background: var(--amber-bg); color: var(--amber-text); }
+
+    /* Form Inputs */
+    .fg {
+      margin-bottom: 12px;
+    }
+    .fg label {
+      display: block;
+      margin-bottom: 5px;
+      color: var(--txt-mut);
+      font-size: var(--fs-sm);
+      font-weight: 600;
+    }
+    input, select, textarea {
+      width: 100%;
+      font-family: inherit;
+      font-size: var(--fs-base);
+      background: var(--card-sub);
+      border: 1.5px solid var(--bdr);
+      color: var(--txt);
+      border-radius: var(--radius-sm);
+      padding: 10px 14px;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--acc);
+    }
+    .row2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .row3 {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 8px;
+    }
+
+    /* Auto Cards on Home Screen */
+    .auto-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .auto-card {
+      background: var(--card-bg);
+      border: 1.5px solid var(--bdr);
+      border-radius: var(--radius);
+      padding: 14px 16px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .auto-card:active {
+      background: var(--card-sub);
+    }
+    .auto-card.st-out {
+      border-color: #3b82f6;
+    }
+    .auto-card.st-returned {
+      border-color: #22c55e;
+    }
+    .auto-card-name {
+      font-size: var(--fs-lg);
+      font-weight: 700;
+    }
+    .auto-card-driver {
+      font-size: var(--fs-sm);
+      color: var(--txt-mut);
+      margin-top: 2px;
+    }
+
+    /* Stats Overview */
+    .stats-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .stat-box {
+      background: var(--card-bg);
+      border: 1px solid var(--bdr);
+      border-radius: var(--radius);
+      padding: 12px 10px;
+      text-align: center;
+    }
+    .stat-num {
+      font-size: var(--fs-xl);
+      font-weight: 800;
+      color: var(--acc);
+      line-height: 1.1;
+    }
+    .stat-label {
+      font-size: var(--fs-xs);
+      color: var(--txt-mut);
+      font-weight: 600;
+      margin-top: 4px;
+    }
+
+    /* Search & Add Bar Component */
+    .search-add-bar {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+      align-items: center;
+    }
+    .search-input-wrap {
+      flex: 1;
+      position: relative;
+    }
+    .search-input-wrap input {
+      height: 46px;
+      padding-left: 38px;
+      padding-right: 12px;
+      font-size: var(--fs-sm);
+      border-radius: var(--radius-sm);
+    }
+    .search-input-wrap .search-icon {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--txt-dim);
+      font-size: 16px;
+      pointer-events: none;
+    }
+    .add-action-btn {
+      width: 46px;
+      height: 46px;
+      background: var(--acc);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-size: 26px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: background 0.15s, transform 0.1s;
+    }
+    .add-action-btn:active {
+      background: var(--acc-hover);
+      transform: scale(0.95);
+    }
+
+    /* Tab switcher */
+    .tab-pills {
+      display: flex;
+      background: var(--card-sub);
+      border-radius: var(--radius-sm);
+      padding: 3px;
+      gap: 3px;
+      margin-bottom: 14px;
+    }
+    .tab-pill {
+      flex: 1;
+      border: none;
+      background: transparent;
+      color: var(--txt-mut);
+      font-size: var(--fs-sm);
+      font-weight: 700;
+      padding: 8px 4px;
+      border-radius: 6px;
+      cursor: pointer;
+      text-align: center;
+      transition: background 0.15s, color 0.15s;
+    }
+    .tab-pill.active {
+      background: var(--acc);
+      color: #ffffff;
+    }
+
+    /* Data Table (Morning Load & Return) */
+    .table-container {
+      background: var(--card-bg);
+      border: 1px solid var(--bdr);
+      border-radius: var(--radius);
+      overflow: hidden;
+      margin-bottom: 12px;
+    }
+    .table-header {
+      display: flex;
+      background: var(--card-sub);
+      border-bottom: 1px solid var(--bdr);
+      font-size: var(--fs-xs);
+      font-weight: 700;
+      color: var(--txt-mut);
+      padding: 10px 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .col-item { flex: 1; text-align: left; }
+    .col-cases { width: 70px; text-align: right; }
+    .col-val { width: 95px; text-align: right; }
+    .col-ret { width: 62px; text-align: right; }
+    .col-sale { width: 55px; text-align: right; color: var(--grn-text); }
+    .col-amt { width: 95px; text-align: right; color: var(--grn-text); }
+
+    .table-row {
+      display: flex;
+      align-items: center;
+      padding: 12px 12px;
+      border-bottom: 1px solid var(--bdr);
+      cursor: pointer;
+      transition: background 0.12s;
+    }
+    .table-row:last-child {
+      border-bottom: none;
+    }
+    .table-row:active {
+      background: var(--card-sub);
+    }
+    .table-row.selected {
+      background: var(--card-sel) !important;
+      outline: 2px solid var(--card-sel-border);
+      outline-offset: -2px;
+    }
+    .table-row.selected .item-name {
+      color: #ffffff;
+      font-weight: 700;
+    }
+    .table-row.has-qty .item-cases {
+      color: var(--acc);
+      font-weight: 700;
+    }
+    .item-name {
+      flex: 1;
+      font-size: var(--fs-base);
+      font-weight: 500;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .item-formula {
+      font-size: 11px;
+      color: var(--txt-dim);
+      margin-left: 4px;
+    }
+    .item-cases {
+      width: 70px;
+      text-align: right;
+      font-size: var(--fs-base);
+      font-weight: 700;
+    }
+    .item-val {
+      width: 95px;
+      text-align: right;
+      font-size: var(--fs-sm);
+      color: var(--txt-mut);
+    }
+    .table-row.has-qty .item-val {
+      color: var(--grn-text);
+      font-weight: 600;
+    }
+
+    .group-divider {
+      background: #111420;
+      color: var(--txt-dim);
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      padding: 6px 12px;
+      border-bottom: 1px solid var(--bdr);
+    }
+
+    /* Running total bar */
+    .total-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 14px;
+      background: var(--card-sub);
+      border-top: 1px solid var(--bdr);
+      font-weight: 700;
+    }
+    .total-bar .label {
+      color: var(--txt-mut);
+      font-size: var(--fs-sm);
+    }
+    .total-bar .value {
+      font-size: var(--fs-lg);
+      color: var(--acc);
+    }
+    .total-bar .value.green {
+      color: var(--grn-text);
+    }
+
+    /* Interactive Keypad (Matching Screenshot 1) */
+    .keypad-dock {
+      position: fixed;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100%;
+      max-width: 580px;
+      background: #121622;
+      border-top: 1px solid var(--bdr-light);
+      box-shadow: 0 -8px 24px rgba(0,0,0,0.6);
+      z-index: 100;
+      padding: 12px 14px 18px;
+      border-radius: 18px 18px 0 0;
+      display: none;
+    }
+    .kp-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+    .kp-item-title {
+      font-size: var(--fs-sm);
+      color: var(--txt-mut);
+      font-weight: 700;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      flex: 1;
+    }
+    .kp-close-btn {
+      background: none;
+      border: none;
+      color: var(--txt-dim);
+      font-size: 20px;
+      cursor: pointer;
+      padding: 2px 6px;
+    }
+    .kp-display-box {
+      background: var(--card-bg);
+      border: 1px solid var(--bdr);
+      border-radius: var(--radius-sm);
+      padding: 10px 14px;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+    }
+    .kp-big-number {
+      font-size: 32px;
+      font-weight: 800;
+      color: #ffffff;
+      line-height: 1;
+    }
+    .kp-result-preview {
+      font-size: var(--fs-sm);
+      color: var(--grn-text);
+      font-weight: 700;
+    }
+    /* 3-column phone layout */
+    .kp-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+    .kp-key {
+      height: 54px;
+      background: var(--card-sub);
+      border: 1px solid var(--bdr);
+      border-radius: var(--radius-sm);
+      color: #ffffff;
+      font-size: 22px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.1s, transform 0.05s;
+    }
+    .kp-key:active {
+      background: #283147;
+      transform: scale(0.96);
+    }
+    .kp-key-plus {
+      background: #1e293b;
+      color: #60a5fa;
+      font-size: 26px;
+    }
+    .kp-key-del {
+      background: #291818;
+      color: #f87171;
+      font-size: 22px;
+    }
+    .kp-next-btn {
+      height: 52px;
+      background: #ffffff;
+      color: #0b0d13;
+      font-size: var(--fs-base);
+      font-weight: 800;
+      border-radius: var(--radius-sm);
+      border: none;
+      cursor: pointer;
+      width: 100%;
+      margin-bottom: 8px;
+      transition: background 0.1s;
+    }
+    .kp-next-btn:active {
+      background: #e2e8f0;
+    }
+    .kp-footer-summary {
+      display: flex;
+      justify-content: space-between;
+      color: var(--txt-mut);
+      font-size: var(--fs-xs);
+      font-weight: 600;
+    }
+    .keypad-spacer {
+      height: 380px;
+    }
+
+    /* Cash & Summary Screen (Matching Screenshot 2) */
+    .summary-metric-card {
+      background: var(--card-bg);
+      border: 1px solid var(--bdr);
+      border-radius: var(--radius);
+      padding: 12px 16px;
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 12px;
+      text-align: center;
+    }
+    .summary-metric-box {
+      flex: 1;
+    }
+    .summary-metric-lbl {
+      font-size: var(--fs-xs);
+      color: var(--txt-mut);
+      font-weight: 700;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+    .summary-metric-val {
+      font-size: var(--fs-lg);
+      font-weight: 800;
+      color: #ffffff;
+    }
+
+    .account-summary-card {
+      background: var(--card-bg);
+      border: 1px solid var(--bdr);
+      border-radius: var(--radius);
+      padding: 8px 16px;
+      margin-bottom: 14px;
+    }
+    .account-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--bdr);
+      font-size: var(--fs-base);
+    }
+    .account-row:last-child {
+      border-bottom: none;
+    }
+    .account-row .lbl {
+      color: var(--txt-mut);
+    }
+    .account-row .val {
+      font-weight: 700;
+      color: #ffffff;
+    }
+    .account-row.total .lbl {
+      color: #ffffff;
+      font-weight: 700;
+    }
+    .account-row.total .val {
+      color: var(--acc);
+      font-size: var(--fs-lg);
+      font-weight: 800;
+    }
+
+    /* Difference Banners */
+    .diff-banner {
+      border-radius: var(--radius);
+      padding: 14px 16px;
+      font-size: var(--fs-lg);
+      font-weight: 800;
+      text-align: center;
+      margin-bottom: 14px;
+    }
+    .diff-short {
+      background: var(--red-bg);
+      border: 1.5px solid var(--red);
+      color: var(--red-text);
+    }
+    .diff-extra {
+      background: var(--grn-bg);
+      border: 1.5px solid var(--grn);
+      color: var(--grn-text);
+    }
+    .diff-matched {
+      background: #064e3b;
+      border: 1.5px solid #10b981;
+      color: #6ee7b7;
+    }
+
+    /* Denomination inputs */
+    .denom-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+    .denom-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--card-sub);
+      border: 1px solid var(--bdr);
+      border-radius: var(--radius-sm);
+      padding: 8px 12px;
+    }
+    .denom-lbl {
+      width: 75px;
+      font-weight: 700;
+      font-size: var(--fs-sm);
+    }
+    .denom-inp {
+      flex: 1;
+      height: 40px;
+      text-align: center;
+      font-size: var(--fs-base);
+      font-weight: 700;
+      padding: 0;
+    }
+    .denom-val {
+      width: 90px;
+      text-align: right;
+      font-size: var(--fs-sm);
+      color: var(--txt-mut);
+      font-weight: 600;
+    }
+
+    /* Credit list */
+    .credit-entry {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--card-sub);
+      border: 1px solid var(--bdr);
+      border-radius: var(--radius-sm);
+      padding: 10px 14px;
+      margin-bottom: 8px;
+    }
+
+    /* Menu Bar / Price List Screen */
+    .category-pills {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      padding-bottom: 8px;
+      margin-bottom: 12px;
+      -webkit-overflow-scrolling: touch;
+    }
+    .cat-pill {
+      background: var(--card-sub);
+      border: 1px solid var(--bdr);
+      color: var(--txt-mut);
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: var(--fs-xs);
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.15s, color 0.15s;
+    }
+    .cat-pill.active {
+      background: var(--acc);
+      color: #fff;
+      border-color: var(--acc);
+    }
+
+    .rate-card {
+      background: var(--card-bg);
+      border: 1px solid var(--bdr);
+      border-radius: var(--radius);
+      padding: 12px 14px;
+      margin-bottom: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .rate-card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .rate-item-name {
+      font-size: var(--fs-base);
+      font-weight: 700;
+      color: #ffffff;
+    }
+    .rate-item-grp {
+      font-size: var(--fs-xs);
+      color: var(--txt-mut);
+    }
+    .rate-inputs-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr auto;
+      gap: 8px;
+      align-items: center;
+    }
+    .rate-box {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .rate-box label {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--txt-dim);
+      text-transform: uppercase;
+    }
+    .rate-box input {
+      height: 40px;
+      text-align: center;
+      font-weight: 700;
+      font-size: var(--fs-sm);
+      padding: 0 6px;
+    }
+
+    /* Scan sheet review modal */
+    .scan-thumb {
+      width: 80px;
+      height: 80px;
+      object-fit: cover;
+      border-radius: var(--radius-sm);
+      border: 2px solid var(--bdr-light);
+      cursor: pointer;
+    }
+    .scan-full-ovl {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.92);
+      z-index: 200;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px;
+    }
+    .scan-full-ovl img {
+      max-width: 100%;
+      max-height: 100%;
+      border-radius: 8px;
+    }
+    .scan-full-close {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      background: rgba(255,255,255,0.2);
+      color: #fff;
+      border: none;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      font-size: 24px;
+      cursor: pointer;
+    }
+
+    /* Reports table */
+    .rpt-table-wrap {
+      overflow-x: auto;
+      background: var(--card-bg);
+      border: 1px solid var(--bdr);
+      border-radius: var(--radius);
+      margin-top: 12px;
+    }
+    .rpt-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    .rpt-table th, .rpt-table td {
+      padding: 10px 8px;
+      text-align: left;
+      border-bottom: 1px solid var(--bdr);
+      white-space: nowrap;
+    }
+    .rpt-table th {
+      background: var(--card-sub);
+      color: var(--txt-mut);
+      font-weight: 700;
+    }
+    .rpt-table tr:last-child td {
+      font-weight: 800;
+      background: #111420;
+    }
+
+    /* Global messages & overlays */
+    .errmsg {
+      background: var(--red-bg);
+      color: var(--red-text);
+      border: 1px solid var(--red);
+      border-radius: var(--radius-sm);
+      padding: 10px 14px;
+      font-size: var(--fs-sm);
+      margin-bottom: 12px;
+      display: none;
+    }
+    .toast {
+      position: fixed;
+      top: 18px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #1e3a8a;
+      color: #93c5fd;
+      border: 1px solid #3b82f6;
+      border-radius: 30px;
+      padding: 10px 20px;
+      font-size: var(--fs-sm);
+      font-weight: 700;
+      z-index: 300;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+      animation: fadeIn 0.2s ease-out;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translate(-50%, -10px); }
+      to { opacity: 1; transform: translate(-50%, 0); }
+    }
+    .loading-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(12, 14, 20, 0.85);
+      backdrop-filter: blur(4px);
+      z-index: 250;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+    }
+    .spinner {
+      width: 44px;
+      height: 44px;
+      border: 4px solid var(--bdr);
+      border-top-color: var(--acc);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Hide file input */
+    .file-input-hidden {
+      position: absolute;
+      opacity: 0;
+      width: 0;
+      height: 0;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ==================== 1. LOGIN SCREEN ==================== -->
+  <div id="screen-login" class="screen active no-nav">
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;">
+      <div style="width:100%;max-width:360px;">
+        <div style="text-align:center;margin-bottom:32px;">
+          <div style="font-size:56px;margin-bottom:10px;">🚚</div>
+          <h1 style="font-size:30px;font-weight:800;letter-spacing:-0.5px;">Arjun Traders</h1>
+          <p style="color:var(--txt-mut);font-size:var(--fs-sm);margin-top:4px;">Vehicle Sale Report &amp; Trip Sheet</p>
+        </div>
+
+        <div id="login-err" class="errmsg"></div>
+
+        <div class="fg">
+          <label>Email Address</label>
+          <input type="email" id="login-email" placeholder="owner@arjuntraders.com" autocomplete="username" />
+        </div>
+
+        <div class="fg" style="margin-bottom:20px;">
+          <label>Password</label>
+          <input type="password" id="login-pass" placeholder="Enter password" autocomplete="current-password" />
+        </div>
+
+        <button class="btn btn-primary" id="login-submit-btn" onclick="handleLogin()">Sign In</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== 2. NO ACCESS SCREEN ==================== -->
+  <div id="screen-noaccess" class="screen no-nav" style="align-items:center;justify-content:center;text-align:center;padding:32px;">
+    <div style="font-size:60px;margin-bottom:16px;">🔒</div>
+    <h2 style="font-size:var(--fs-xl);margin-bottom:8px;">No Profile Found</h2>
+    <p style="color:var(--txt-mut);margin-bottom:24px;font-size:var(--fs-sm);">Your account is authenticated, but no matching role profile was found in Arjun Traders system. Please contact the owner.</p>
+    <button class="btn btn-outline btn-sm" onclick="handleLogout()" style="max-width:200px;">Logout</button>
+  </div>
+
+  <!-- ==================== 3. HOME SCREEN ==================== -->
+  <div id="screen-home" class="screen">
+    <div class="topbar">
+      <div class="topbar-left">
+        <span style="font-size:24px;">🏢</span>
+        <div>
+          <h1 id="home-greeting">Arjun Traders</h1>
+          <div class="topbar-sub" id="home-date-display">Today</div>
+        </div>
+      </div>
+      <button class="topbar-btn" onclick="handleLogout()" title="Logout" style="font-size:16px;">🚪</button>
+    </div>
+
+    <div class="scroll-body">
+      <div id="home-err" class="errmsg"></div>
+
+      <!-- Overview Stats (Matching Screenshot 3) -->
+      <div class="stats-row">
+        <div class="stat-box">
+          <div class="stat-num" id="stat-out">0</div>
+          <div class="stat-label">Autos Out</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-num" id="stat-ret" style="color:var(--grn-text);">0</div>
+          <div class="stat-label">Returned</div>
+        </div>
+        <div class="stat-box" onclick="showScreen('shops')" style="cursor:pointer;">
+          <div class="stat-num" id="stat-dues" style="font-size:18px;color:var(--amber-text);">₹0</div>
+          <div class="stat-label">Pending Dues</div>
+        </div>
+      </div>
+
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+        <span class="card-title" style="margin-bottom:0;">Today's Auto Trip Sheets</span>
+        <button class="btn btn-xs btn-outline" onclick="loadHomeScreenData()">↻ Refresh</button>
+      </div>
+
+      <!-- Auto Cards Grid (Auto 1 to Auto 6) -->
+      <div class="auto-grid" id="auto-cards-list"></div>
+
+      <!-- Quick Action Buttons -->
+      <div style="display:flex;flex-direction:column;gap:10px;margin-top:8px;">
+        <button class="btn btn-white" onclick="openNewTripPrompt()">+ New Trip Sheet</button>
+        <button class="btn btn-ghost" onclick="showScreen('reports')">📊 View Sales Reports</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== 4. TRIP SHEET SCREEN ==================== -->
+  <div id="screen-trip" class="screen">
+    <div class="topbar">
+      <div class="topbar-left">
+        <button class="topbar-btn" onclick="showScreen('home')">←</button>
+        <div>
+          <h1 id="trip-header-title">Auto Trip Sheet</h1>
+          <div class="topbar-sub" id="trip-header-sub">Load &amp; Settlement</div>
+        </div>
+      </div>
+      <span id="trip-status-badge" class="badge badge-none">Draft</span>
+    </div>
+
+    <div class="scroll-body" id="trip-scroll-area">
+      <div id="trip-err" class="errmsg"></div>
+
+      <!-- Tab Switcher (Morning Load / Evening Return / Cash Settlement) -->
+      <div class="tab-pills">
+        <button class="tab-pill active" id="tab-btn-load" onclick="setTripTab('load')">☀️ Morning Load</button>
+        <button class="tab-pill" id="tab-btn-return" onclick="setTripTab('return')">🌙 Evening Return</button>
+        <button class="tab-pill" id="tab-btn-cash" onclick="setTripTab('cash')">💵 Cash &amp; Dues</button>
+      </div>
+
+      <!-- TAB 1: MORNING LOAD -->
+      <div id="tab-panel-load">
+        <!-- Trip Header Metadata Card -->
+        <div class="card">
+          <div class="row2">
+            <div class="fg" style="margin:0;">
+              <label>Trip Date</label>
+              <input type="date" id="trip-date" />
+            </div>
+            <div class="fg" style="margin:0;">
+              <label>Delivery Auto</label>
+              <select id="trip-auto-select" onchange="onTripAutoSelectChanged()"></select>
+            </div>
+          </div>
+          <div class="row2" style="margin-top:10px;">
+            <div class="fg" style="margin:0;">
+              <label>Driver Name</label>
+              <input type="text" id="trip-driver" placeholder="Driver name" />
+            </div>
+            <div class="fg" style="margin:0;">
+              <label>CSO (Staff)</label>
+              <input type="text" id="trip-cso" placeholder="CSO name" />
+            </div>
+          </div>
+          <div class="row2" style="margin-top:10px;">
+            <div class="fg" style="margin:0;">
+              <label>Start KM</label>
+              <input type="number" id="trip-startkm" placeholder="e.g. 12450" />
+            </div>
+            <div class="fg" style="margin:0;">
+              <label>Diesel (Litres)</label>
+              <input type="number" id="trip-diesel-load" placeholder="0.0" step="0.5" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Search Bar & Add Item Button (Requested by User) -->
+        <div class="search-add-bar">
+          <div class="search-input-wrap">
+            <span class="search-icon">🔍</span>
+            <input type="search" id="load-search-box" placeholder="Search item to add value..." oninput="filterLoadItems()" />
+          </div>
+          <button class="add-action-btn" onclick="openQuickItemModal()" title="Add New Item to Catalog">+</button>
+        </div>
+
+        <!-- Scan Sheet Button with Camera Icon -->
+        <div style="display:flex;gap:10px;margin-bottom:12px;">
+          <button class="btn btn-outline btn-sm" id="btn-scan-load" onclick="startCameraScan('load')" style="flex:1;">
+            📷 Scan Paper Sheet
+          </button>
+          <input type="file" accept="image/*" capture="environment" id="scan-file-input-load" class="file-input-hidden" onchange="onScanFilePicked(event, 'load')" />
+
+          <button class="btn btn-ghost btn-sm" id="btn-toggle-show-all" onclick="toggleShowAllItems()" style="width:auto;">
+            👁️ Show All Items
+          </button>
+        </div>
+
+        <!-- Morning Load Table (Item | Cases | Value) -->
+        <div class="table-container">
+          <div class="table-header">
+            <div class="col-item">Item Name</div>
+            <div class="col-cases">Cases</div>
+            <div class="col-val">Value</div>
+          </div>
+          <div id="load-table-rows"></div>
+          <div class="total-bar">
+            <span class="label">Total Cases Loaded</span>
+            <span class="value" id="load-total-cases">0 cases</span>
+          </div>
+        </div>
+
+        <!-- Spacer when keypad is open -->
+        <div class="keypad-spacer" id="load-keypad-spacer" style="display:none;"></div>
+
+        <!-- Morning Action Buttons -->
+        <div style="display:flex;gap:10px;margin-top:14px;">
+          <button class="btn btn-ghost btn-sm" onclick="saveTripDraft()" style="width:110px;">💾 Draft</button>
+          <button class="btn btn-success" id="btn-save-morning" onclick="saveMorningLoad()" style="flex:1;">✓ Save Morning Load (Out)</button>
+        </div>
+      </div>
+
+      <!-- TAB 2: EVENING RETURN -->
+      <div id="tab-panel-return" style="display:none;">
+        <!-- Return Odometer & Fuel Card -->
+        <div class="card">
+          <div class="row2">
+            <div class="fg" style="margin:0;">
+              <label>Close KM</label>
+              <input type="number" id="trip-closekm" placeholder="e.g. 12498" oninput="calculateTripMileage()" />
+            </div>
+            <div class="fg" style="margin:0;">
+              <label>Total Diesel (L)</label>
+              <input type="number" id="trip-diesel-eve" placeholder="0.0" step="0.5" oninput="calculateTripMileage()" />
+            </div>
+          </div>
+          <div class="summary-metric-card" id="mileage-stats-box" style="display:none;margin-top:10px;margin-bottom:0;">
+            <div class="summary-metric-box">
+              <div class="summary-metric-lbl">Distance</div>
+              <div class="summary-metric-val" id="val-distance">-</div>
+            </div>
+            <div class="summary-metric-box">
+              <div class="summary-metric-lbl">Mileage</div>
+              <div class="summary-metric-val" id="val-mileage" style="color:var(--grn-text);">-</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Scan Return Sheet -->
+        <div style="margin-bottom:12px;">
+          <button class="btn btn-outline btn-sm" id="btn-scan-return" onclick="startCameraScan('return')" style="width:100%;">
+            📷 Scan Return Sheet
+          </button>
+          <input type="file" accept="image/*" capture="environment" id="scan-file-input-return" class="file-input-hidden" onchange="onScanFilePicked(event, 'return')" />
+        </div>
+
+        <!-- Return Table (Item | Load | Return | Sale | Amount) -->
+        <div class="table-container">
+          <div class="table-header">
+            <div class="col-item">Item</div>
+            <div class="col-cases" style="font-size:12px;">Load</div>
+            <div class="col-ret">Return</div>
+            <div class="col-sale">Sale</div>
+            <div class="col-amt">Amount</div>
+          </div>
+          <div id="return-table-rows"></div>
+          <div class="total-bar">
+            <span class="label">Total Sale Amount</span>
+            <span class="value green" id="return-total-sale">₹ 0</span>
+          </div>
+        </div>
+
+        <p style="text-align:center;font-size:12px;color:var(--txt-dim);margin:8px 0 14px;">
+          💡 Green values (Sale &amp; Amount) are calculated by the app, not typed.
+        </p>
+
+        <!-- Spacer when keypad is open -->
+        <div class="keypad-spacer" id="return-keypad-spacer" style="display:none;"></div>
+
+        <!-- Next: Cash Collected Button (Matching Screenshot 2 Left) -->
+        <div style="display:flex;gap:10px;">
+          <button class="btn btn-ghost btn-sm" onclick="saveTripDraft()" style="width:110px;">💾 Draft</button>
+          <button class="btn btn-white" onclick="proceedToCashTab()" style="flex:1;">Next: Cash Collected →</button>
+        </div>
+      </div>
+
+      <!-- TAB 3: CASH & SETTLEMENT SUMMARY (Matching Screenshot 2 Right) -->
+      <div id="tab-panel-cash" style="display:none;">
+        <!-- Top Mileage and Distance Indicator -->
+        <div class="summary-metric-card" id="cash-mileage-card">
+          <div class="summary-metric-box">
+            <div class="summary-metric-lbl">Distance</div>
+            <div class="summary-metric-val" id="cash-dist-val">0 km</div>
+          </div>
+          <div class="summary-metric-box">
+            <div class="summary-metric-lbl">Mileage</div>
+            <div class="summary-metric-val" id="cash-mileage-val" style="color:var(--grn-text);">-</div>
+          </div>
+        </div>
+
+        <!-- Account Summary Breakdown (Matching Screenshot 2 Right) -->
+        <div class="account-summary-card">
+          <div class="account-row">
+            <span class="lbl">Expected from sales</span>
+            <span class="val" id="sum-exp-sales">₹ 0</span>
+          </div>
+          <div class="account-row">
+            <span class="lbl">Cash in hand</span>
+            <span class="val" id="sum-cash-hand">₹ 0</span>
+          </div>
+          <div class="account-row">
+            <span class="lbl">PhonePe</span>
+            <span class="val" id="sum-phonepe">₹ 0</span>
+          </div>
+          <div class="account-row">
+            <span class="lbl">Given on credit</span>
+            <span class="val" id="sum-credit">₹ 0</span>
+          </div>
+          <div class="account-row total">
+            <span class="lbl">Total accounted</span>
+            <span class="val" id="sum-total-accounted">₹ 0</span>
+          </div>
+        </div>
+
+        <!-- Discrepancy Banner (Red Short by X / Green Matched / Green Extra) -->
+        <div id="settlement-diff-banner" class="diff-banner diff-matched">✓ Matched</div>
+
+        <!-- Credit Section -->
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+            <span class="card-title" style="margin-bottom:0;">👤 Credit Given to Shops</span>
+            <span style="font-size:var(--fs-sm);color:var(--txt-mut);" id="credit-count-badge">0 shops</span>
+          </div>
+          <div id="trip-credit-items-list"></div>
+
+          <!-- Add Credit Form -->
+          <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;">
+            <select id="trip-credit-shop-select" style="flex:2;min-width:140px;height:42px;font-size:var(--fs-sm);"></select>
+            <input type="number" id="trip-credit-amount" placeholder="Amount (₹)" style="flex:1;min-width:90px;height:42px;font-size:var(--fs-sm);" />
+            <button class="btn btn-sm btn-ghost" onclick="addShopCreditEntry()" style="height:42px;">+ Add</button>
+          </div>
+        </div>
+
+        <!-- Cash Count Breakdown (Denominations) Toggle -->
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center;cursor:pointer;" onclick="toggleDenominationView()">
+            <div>
+              <div class="card-title" style="margin-bottom:2px;">💵 Cash Denominations</div>
+              <div style="font-size:var(--fs-sm);color:var(--grn-text);font-weight:700;" id="denom-total-badge">Total: ₹ 0</div>
+            </div>
+            <button class="btn btn-xs btn-outline" id="denom-toggle-btn">Edit Notes ▼</button>
+          </div>
+
+          <div id="denom-inputs-container" style="display:none;margin-top:14px;">
+            <div class="denom-grid" id="denom-rows-list"></div>
+          </div>
+        </div>
+
+        <!-- PhonePe UPI Input -->
+        <div class="card">
+          <div class="fg" style="margin:0;">
+            <label>📱 PhonePe / Online Payments (₹)</label>
+            <input type="number" id="phonepe-input" placeholder="0" oninput="recalculateCashSummary()" style="font-weight:700;font-size:var(--fs-lg);" />
+          </div>
+        </div>
+
+        <!-- Action Buttons (Matching Screenshot 2 Right) -->
+        <div style="display:flex;flex-direction:column;gap:10px;margin-top:16px;">
+          <button class="btn btn-white" id="btn-save-day" onclick="saveDaySettlement()">Save Day (Mark Returned)</button>
+          <button class="btn btn-outline" onclick="toggleDenominationView()">Edit Cash Count</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== 5. MENU BAR / PREDEFINED RATES SCREEN ==================== -->
+  <!-- "section that predefine the item value per case wise & per unit wise which is menu bar" -->
+  <div id="screen-items" class="screen">
+    <div class="topbar">
+      <div class="topbar-left">
+        <button class="topbar-btn" onclick="showScreen('home')">←</button>
+        <div>
+          <h1>Item Rates &amp; Menu</h1>
+          <div class="topbar-sub">Predefined Case &amp; Unit Rates</div>
+        </div>
+      </div>
+      <button class="btn btn-xs btn-primary" id="btn-open-add-item-modal" onclick="openQuickItemModal()">+ Add Item</button>
+    </div>
+
+    <div class="scroll-body">
+      <div id="items-screen-err" class="errmsg"></div>
+
+      <!-- Search Bar to quickly find any product -->
+      <div class="search-add-bar">
+        <div class="search-input-wrap">
+          <span class="search-icon">🔍</span>
+          <input type="search" id="catalog-search-box" placeholder="Search beverages or brands..." oninput="filterCatalogItems()" />
+        </div>
+        <button class="add-action-btn" onclick="openQuickItemModal()" title="Add New Item">+</button>
+      </div>
+
+      <!-- Category Filter Pills -->
+      <div class="category-pills" id="category-filter-pills"></div>
+
+      <!-- Role Notice -->
+      <div id="role-notice-banner" style="background:#131d2e;border:1px solid #1e3a8a;border-radius:var(--radius-sm);padding:8px 12px;font-size:13px;color:#93c5fd;margin-bottom:12px;">
+        ℹ️ Staff mode: Viewing predefined rates. (Owner can edit values).
+      </div>
+
+      <!-- Predefined Items List (Case-wise & Unit-wise) -->
+      <div id="catalog-items-container"></div>
+    </div>
+  </div>
+
+  <!-- ==================== 6. SHOPS & DUES SCREEN ==================== -->
+  <div id="screen-shops" class="screen">
+    <div class="topbar">
+      <div class="topbar-left">
+        <button class="topbar-btn" onclick="showScreen('home')">←</button>
+        <div>
+          <h1>Shops &amp; Credit Dues</h1>
+          <div class="topbar-sub">Pending Balances</div>
+        </div>
+      </div>
+      <button class="btn btn-xs btn-primary" onclick="openNewShopModal()">+ New Shop</button>
+    </div>
+
+    <div class="scroll-body">
+      <div id="shops-err" class="errmsg"></div>
+
+      <div class="search-add-bar">
+        <div class="search-input-wrap">
+          <span class="search-icon">🔍</span>
+          <input type="search" id="shops-search-box" placeholder="Search shops..." oninput="filterShopsList()" />
+        </div>
+        <button class="add-action-btn" onclick="openNewShopModal()" title="Add Shop">+</button>
+      </div>
+
+      <div id="shops-list-container"></div>
+    </div>
+  </div>
+
+  <!-- Shop Detail & Payment History Screen -->
+  <div id="screen-shop-detail" class="screen">
+    <div class="topbar">
+      <div class="topbar-left">
+        <button class="topbar-btn" onclick="showScreen('shops')">←</button>
+        <div>
+          <h1 id="shop-detail-name">Shop Name</h1>
+          <div class="topbar-sub">Credit Ledger</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="scroll-body">
+      <div id="shop-detail-err" class="errmsg"></div>
+
+      <div class="card" style="text-align:center;padding:18px;">
+        <div style="font-size:var(--fs-sm);color:var(--txt-mut);font-weight:700;">CURRENT BALANCE DUE</div>
+        <div style="font-size:32px;font-weight:800;color:var(--red-text);margin-top:4px;" id="shop-detail-due-val">₹ 0</div>
+      </div>
+
+      <button class="btn btn-primary" id="btn-show-recv-payment" onclick="toggleReceivePaymentForm()" style="margin-bottom:14px;">
+        💰 Receive Payment
+      </button>
+
+      <!-- Receive Payment Card -->
+      <div class="card" id="recv-payment-card" style="display:none;">
+        <div class="card-title">Record Payment Received</div>
+        <div class="fg">
+          <label>Payment Amount (₹)</label>
+          <input type="number" id="recv-pmt-amount" placeholder="Amount received" />
+        </div>
+        <div class="fg">
+          <label>Payment Note / Reference</label>
+          <input type="text" id="recv-pmt-note" placeholder="Cash, GPay, Cheque..." />
+        </div>
+        <div style="display:flex;gap:10px;">
+          <button class="btn btn-sm btn-outline" onclick="toggleReceivePaymentForm()" style="flex:1;">Cancel</button>
+          <button class="btn btn-sm btn-success" id="btn-save-recv-payment" onclick="submitReceivedPayment()" style="flex:1;">Save Payment</button>
+        </div>
+      </div>
+
+      <div class="card-title" style="margin-top:16px;">Ledger History</div>
+      <div id="shop-ledger-history"></div>
+    </div>
+  </div>
+
+  <!-- ==================== 7. REPORTS SCREEN ==================== -->
+  <div id="screen-reports" class="screen">
+    <div class="topbar">
+      <div class="topbar-left">
+        <button class="topbar-btn" onclick="showScreen('home')">←</button>
+        <div>
+          <h1>Distribution Reports</h1>
+          <div class="topbar-sub">Summary &amp; Audit</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="scroll-body">
+      <div id="reports-err" class="errmsg"></div>
+
+      <div class="card">
+        <div class="row2">
+          <div class="fg" style="margin:0;">
+            <label>From Date</label>
+            <input type="date" id="rpt-from-date" onchange="loadReportsData()" />
+          </div>
+          <div class="fg" style="margin:0;">
+            <label>To Date</label>
+            <input type="date" id="rpt-to-date" onchange="loadReportsData()" />
+          </div>
+        </div>
+      </div>
+
+      <div id="reports-output-container"></div>
+    </div>
+  </div>
+
+  <!-- ==================== 8. CAMERA REVIEW SCREEN ==================== -->
+  <!-- Matching Screenshot 3 Right -->
+  <div id="screen-scan-review" class="screen no-nav">
+    <div class="topbar">
+      <div class="topbar-left">
+        <button class="topbar-btn" onclick="cancelScanReview()">✕</button>
+        <div>
+          <h1>Check Scan</h1>
+          <div class="topbar-sub" id="scan-review-sub">Review OCR readings</div>
+        </div>
+      </div>
+      <span class="badge badge-warning" id="scan-check-badge">Check</span>
+    </div>
+
+    <div class="scroll-body">
+      <div id="scan-review-err" class="errmsg"></div>
+
+      <!-- Photo Card (Tap to zoom) -->
+      <div class="card" style="display:flex;align-items:center;gap:14px;cursor:pointer;" onclick="openFullPhotoView()">
+        <img id="scan-photo-thumbnail" class="scan-thumb" src="" alt="Trip sheet photo" />
+        <div>
+          <div style="font-weight:700;font-size:var(--fs-sm);">Photo of Sheet (Tap to zoom)</div>
+          <p style="color:var(--txt-mut);font-size:var(--fs-xs);margin-top:2px;">Compare recognized values with paper sheet.</p>
+        </div>
+      </div>
+
+      <!-- Unmatched Rows Container -->
+      <div id="scan-unmatched-container"></div>
+
+      <!-- Recognized Line Rows -->
+      <div class="card-title">Scanned Items</div>
+      <div class="table-container">
+        <div class="table-header">
+          <div class="col-item">Item Name</div>
+          <div class="col-cases">Cases</div>
+          <div style="width:70px;text-align:right;">Status</div>
+        </div>
+        <div id="scan-recognized-lines"></div>
+      </div>
+
+      <!-- Action Buttons (Matching Screenshot 3 Right) -->
+      <div style="display:flex;gap:10px;margin-top:16px;">
+        <button class="btn btn-outline" onclick="cancelScanReview()" style="flex:1;">Save as Draft</button>
+        <button class="btn btn-white" onclick="confirmScanValues()" style="flex:1;">Confirm &amp; Fill</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Fullscreen Photo Overlay -->
+  <div id="photo-full-overlay" class="scan-full-ovl" style="display:none;" onclick="closeFullPhotoView()">
+    <button class="scan-full-close" onclick="closeFullPhotoView()">✕</button>
+    <img id="photo-full-img" src="" alt="Full Trip Sheet" />
+  </div>
+
+  <!-- ==================== 9. BOTTOM KEYPAD COMPONENT ==================== -->
+  <!-- Matching Screenshot 1 precisely -->
+  <div id="interactive-keypad" class="keypad-dock">
+    <div class="kp-header">
+      <div class="kp-item-title" id="kp-target-title">Item Name</div>
+      <button class="kp-close-btn" onclick="dismissKeypad()">✕</button>
+    </div>
+
+    <!-- Big Number Display -->
+    <div class="kp-display-box">
+      <div class="kp-big-number" id="kp-display-number">0</div>
+      <div class="kp-result-preview" id="kp-display-preview"></div>
+    </div>
+
+    <!-- 3x4 Phone Keypad (1-9, +, 0, Del) -->
+    <div class="kp-grid">
+      <button class="kp-key" onclick="pressKeypad('1')">1</button>
+      <button class="kp-key" onclick="pressKeypad('2')">2</button>
+      <button class="kp-key" onclick="pressKeypad('3')">3</button>
+
+      <button class="kp-key" onclick="pressKeypad('4')">4</button>
+      <button class="kp-key" onclick="pressKeypad('5')">5</button>
+      <button class="kp-key" onclick="pressKeypad('6')">6</button>
+
+      <button class="kp-key" onclick="pressKeypad('7')">7</button>
+      <button class="kp-key" onclick="pressKeypad('8')">8</button>
+      <button class="kp-key" onclick="pressKeypad('9')">9</button>
+
+      <button class="kp-key kp-key-plus" onclick="pressKeypad('+')">+</button>
+      <button class="kp-key" onclick="pressKeypad('0')">0</button>
+      <button class="kp-key kp-key-del" onclick="pressKeypad('backspace')">⌫</button>
+    </div>
+
+    <!-- Next Item Action Button (Matching Screenshot 1) -->
+    <button class="kp-next-btn" onclick="pressKeypadNextItem()">Next Item →</button>
+
+    <!-- Keypad footer summary -->
+    <div class="kp-footer-summary">
+      <span id="kp-footer-cases">Total Cases: 0</span>
+      <span onclick="dismissKeypad()" style="cursor:pointer;color:var(--acc);font-weight:700;">Done ✓</span>
+    </div>
+  </div>
+
+  <!-- ==================== 10. PERSISTENT MENU BAR (NAVIGATION) ==================== -->
+  <!-- User: "also need a section that predefine the item value per case wise & per unit wise which is menu bar" -->
+  <nav class="bottom-menu" id="app-bottom-navbar">
+    <button class="menu-item active" id="nav-btn-home" onclick="showScreen('home')">
+      <span class="icon">🏠</span>
+      <span>Home</span>
+    </button>
+    <button class="menu-item" id="nav-btn-trip" onclick="openCurrentOrLatestTrip()">
+      <span class="icon">📋</span>
+      <span>Trip</span>
+    </button>
+    <button class="menu-item" id="nav-btn-items" onclick="showScreen('items')">
+      <span class="icon">🏷️</span>
+      <span>Menu &amp; Rates</span>
+    </button>
+    <button class="menu-item" id="nav-btn-shops" onclick="showScreen('shops')">
+      <span class="icon">🏪</span>
+      <span>Dues</span>
+    </button>
+    <button class="menu-item" id="nav-btn-reports" onclick="showScreen('reports')">
+      <span class="icon">📊</span>
+      <span>Reports</span>
+    </button>
+  </nav>
+
+</div><!-- #app -->
+
+<!-- Quick Add Item Modal -->
+<div id="modal-quick-add-item" class="scan-full-ovl" style="display:none;">
+  <div class="card" style="width:100%;max-width:380px;background:var(--card-bg);margin:16px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+      <h2 style="font-size:var(--fs-lg);">Add New Item</h2>
+      <button class="topbar-btn" onclick="closeQuickItemModal()" style="border:none;">✕</button>
+    </div>
+    <div id="modal-item-err" class="errmsg"></div>
+
+    <div class="fg">
+      <label>Beverage Group</label>
+      <select id="modal-item-grp">
+        <option>150ml</option>
+        <option selected>200ml</option>
+        <option>500/600ml</option>
+        <option>1Lt</option>
+        <option>Tins</option>
+        <option>2.5Lt</option>
+        <option>Water</option>
+      </select>
+    </div>
+    <div class="fg">
+      <label>Item / Brand Name</label>
+      <input type="text" id="modal-item-name" placeholder="e.g. Sure 500, Cola 200ml" />
+    </div>
+    <div class="row2">
+      <div class="fg">
+        <label>Rate / Case (₹)</label>
+        <input type="number" id="modal-item-case-rate" placeholder="0" oninput="calculateUnitFromCaseModal()" />
+      </div>
+      <div class="fg">
+        <label>Units / Case</label>
+        <input type="number" id="modal-item-units-per-case" placeholder="24" oninput="calculateUnitFromCaseModal()" />
+      </div>
+    </div>
+    <div class="fg">
+      <label>Calculated Rate / Unit (₹)</label>
+      <input type="number" id="modal-item-unit-rate" placeholder="0.00" step="0.25" oninput="calculateCaseFromUnitModal()" />
+    </div>
+
+    <div style="display:flex;gap:10px;margin-top:16px;">
+      <button class="btn btn-outline" onclick="closeQuickItemModal()" style="flex:1;">Cancel</button>
+      <button class="btn btn-primary" id="btn-save-new-item" onclick="submitNewItem()" style="flex:1;">Save Item</button>
+    </div>
+  </div>
+</div>
+
+<!-- New Shop Modal -->
+<div id="modal-new-shop" class="scan-full-ovl" style="display:none;">
+  <div class="card" style="width:100%;max-width:360px;background:var(--card-bg);margin:16px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+      <h2 style="font-size:var(--fs-lg);">Add Shop</h2>
+      <button class="topbar-btn" onclick="closeNewShopModal()" style="border:none;">✕</button>
+    </div>
+    <div id="modal-shop-err" class="errmsg"></div>
+    <div class="fg">
+      <label>Shop / Customer Name</label>
+      <input type="text" id="modal-shop-name" placeholder="e.g. Ramesh Kirana" />
+    </div>
+    <div style="display:flex;gap:10px;margin-top:14px;">
+      <button class="btn btn-outline" onclick="closeNewShopModal()" style="flex:1;">Cancel</button>
+      <button class="btn btn-primary" onclick="submitNewShop()" style="flex:1;">Save Shop</button>
+    </div>
+  </div>
+</div>
+
+<!-- Global Loading Overlay -->
+<div id="global-loading" class="loading-overlay" style="display:none;">
+  <div class="spinner"></div>
+  <div id="loading-msg" style="font-size:var(--fs-lg);font-weight:700;">Loading...</div>
+</div>
+
+<!-- ==================== JAVASCRIPT APPLICATION CODE ==================== -->
+<script>
+// Supabase Configuration
+const SUPABASE_URL = 'https://faqbsmvfmvnmnrumghco.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZhcWJzbXZmbXZubW5ydW1naGNvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE5ODQ0MTYsImV4cCI6MjEwNzU2MDQxNn0.BnnozivRHcYYjkqnQHntz73zzEYFA-ZefbfNIQOVzlo';
+
+// Initialize Supabase Client
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// Application State
+let currentUser = null;
+let currentProfile = null;
+let allAutos = [];
+let allItems = [];
+let allShops = [];
+let activeTrip = null;
+let activeTripLines = {}; // Key: item_id -> { load_qty, return_qty, rate, expr, retExpr }
+let activeCreditEntries = []; // Array of { id, shop_id, shop_name, amount }
+let currentPaymentData = null;
+
+// Keypad State
+let kpTargetItemId = null;
+let kpMode = 'load'; // 'load' or 'return'
+let kpExpression = '';
+
+// Scan State
+let scanColumn = 'load';
+let scanResultData = null;
+let scanBase64Image = '';
+
+// Denominations Configuration
+const CASH_DENOMINATIONS = [
+  { label: '₹ 500', key: 'd500', value: 500 },
+  { label: '₹ 200', key: 'd200', value: 200 },
+  { label: '₹ 100', key: 'd100', value: 100 },
+  { label: '₹ 50',  key: 'd50',  value: 50 },
+  { label: '₹ 20',  key: 'd20',  value: 20 },
+  { label: '₹ 10',  key: 'd10',  value: 10 },
+  { label: 'Change', key: 'change', value: 1 }
+];
+
+// Standard units per case default fallbacks by category
+const GROUP_DEFAULT_UNITS = {
+  '150ml': 30,
+  '200ml': 24,
+  '500/600ml': 24,
+  '1Lt': 12,
+  'Tins': 24,
+  '2.5Lt': 6,
+  'Water': 24
+};
+
+// --- HELPER UTILITIES ---
+
+function formatRupees(amount) {
+  if (amount === null || amount === undefined || isNaN(+amount)) return '₹ 0';
+  const num = Math.round(+amount * 100) / 100;
+  return '₹ ' + num.toLocaleString('en-IN', {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2
+  });
+}
+
+function getTodayISODate() {
+  return new Date().toLocaleDateString('en-CA');
+}
+
+function showLoading(message) {
+  const el = document.getElementById('loading-msg');
+  if (el) el.textContent = message || 'Loading...';
+  document.getElementById('global-loading').style.display = 'flex';
+}
+
+function hideLoading() {
+  document.getElementById('global-loading').style.display = 'none';
+}
+
+function showErrorMessage(elementId, message) {
+  const el = document.getElementById(elementId);
+  if (el) {
+    el.textContent = message;
+    el.style.display = 'block';
+  }
+}
+
+function hideErrorMessage(elementId) {
+  const el = document.getElementById(elementId);
+  if (el) el.style.display = 'none';
+}
+
+function showToast(message) {
+  const toast = document.createElement('div');
+  toast.className = 'toast';
+  toast.textContent = message;
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 3200);
+}
+
+function evaluateMathExpression(expr) {
+  if (!expr) return 0;
+  const parts = String(expr).replace(/[^0-9+]/g, '').split('+').map(Number).filter(n => !isNaN(n));
+  return parts.reduce((sum, n) => sum + n, 0);
+}
+
+// LocalStorage helpers for item unit rates & cache
+function getUnitsPerCase(item) {
+  if (item.units_per_case && item.units_per_case > 0) return item.units_per_case;
+  const stored = localStorage.getItem('units_' + item.id);
+  if (stored) return parseInt(stored, 10) || GROUP_DEFAULT_UNITS[item.grp] || 24;
+  return GROUP_DEFAULT_UNITS[item.grp] || 24;
+}
+
+function setUnitsPerCase(itemId, units) {
+  localStorage.setItem('units_' + itemId, String(units));
+}
+
+// Screen Routing
+function showScreen(name) {
+  dismissKeypad();
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  const target = document.getElementById('screen-' + name);
+  if (target) {
+    target.classList.add('active');
+    window.scrollTo(0, 0);
+  }
+
+  // Update Bottom Nav state
+  document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
+  const navBtn = document.getElementById('nav-btn-' + name);
+  if (navBtn) navBtn.classList.add('active');
+
+  // Screen specific hooks
+  if (name === 'home') {
+    loadHomeScreenData();
+  } else if (name === 'items') {
+    loadCatalogMenuScreen();
+  } else if (name === 'shops') {
+    loadShopsListScreen();
+  } else if (name === 'reports') {
+    initReportsDateRange();
+  }
+}
+
+// --- AUTHENTICATION ---
+
+sb.auth.getSession().then(({ data }) => {
+  if (data && data.session) {
+    currentUser = data.session.user;
+    loadUserProfileAndBootstrap();
+  }
+});
+
+sb.auth.onAuthStateChange((event) => {
+  if (event === 'SIGNED_OUT') {
+    window.location.reload();
+  }
+});
+
+async function handleLogin() {
+  hideErrorMessage('login-err');
+  const email = document.getElementById('login-email').value.trim();
+  const pass = document.getElementById('login-pass').value;
+
+  if (!email || !pass) {
+    showErrorMessage('login-err', 'Please enter email and password.');
+    return;
+  }
+
+  const btn = document.getElementById('login-submit-btn');
+  btn.disabled = true;
+  btn.textContent = 'Signing in...';
+
+  const { data, error } = await sb.auth.signInWithPassword({ email, password: pass });
+  btn.disabled = false;
+  btn.textContent = 'Sign In';
+
+  if (error) {
+    showErrorMessage('login-err', error.message || 'Invalid credentials');
+    return;
+  }
+
+  currentUser = data.user;
+  loadUserProfileAndBootstrap();
+}
+
+async function handleLogout() {
+  await sb.auth.signOut();
+}
+
+async function loadUserProfileAndBootstrap() {
+  showLoading('Loading account...');
+  const { data: profile, error } = await sb.from('profiles').select('name, role').eq('id', currentUser.id).single();
+
+  if (error || !profile) {
+    hideLoading();
+    showScreen('noaccess');
+    return;
+  }
+
+  currentProfile = profile;
+
+  // Load Seeded Tables: Autos, Items, Shops
+  await Promise.all([fetchAutos(), fetchCatalogItems(), fetchShops()]);
+  hideLoading();
+  showScreen('home');
+}
+
+async function fetchAutos() {
+  const { data } = await sb.from('autos').select('*').order('name');
+  allAutos = data || [];
+}
+
+async function fetchCatalogItems() {
+  const { data } = await sb.from('items').select('*').order('sort').order('name');
+  allItems = data || [];
+}
+
+async function fetchShops() {
+  const { data } = await sb.from('shops').select('*').order('name');
+  allShops = data || [];
+}
+
+// --- 3. HOME SCREEN LOGIC ---
+
+async function loadHomeScreenData() {
+  hideErrorMessage('home-err');
+  const greetingEl = document.getElementById('home-greeting');
+  if (currentProfile && greetingEl) {
+    greetingEl.textContent = 'Hi, ' + currentProfile.name;
+  }
+
+  const dateEl = document.getElementById('home-date-display');
+  if (dateEl) {
+    dateEl.textContent = new Date().toLocaleDateString('en-IN', {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'short'
+    });
+  }
+
+  const todayStr = getTodayISODate();
+
+  // Load trips for today
+  const { data: trips, error } = await sb.from('trips').select('*').eq('trip_date', todayStr);
+  if (error) {
+    showErrorMessage('home-err', 'Could not load trips: ' + error.message);
+    return;
+  }
+
+  const tripMap = {};
+  (trips || []).forEach(t => {
+    tripMap[t.auto_id] = t;
+  });
+
+  let countOut = 0;
+  let countReturned = 0;
+  (trips || []).forEach(t => {
+    if (t.status === 'out') countOut++;
+    if (t.status === 'returned') countReturned++;
+  });
+
+  document.getElementById('stat-out').textContent = countOut;
+  document.getElementById('stat-ret').textContent = countReturned;
+
+  // Total pending dues across all shops
+  const { data: duesData } = await sb.from('dues').select('kind, amount');
+  const totalPendingDues = (duesData || []).reduce((sum, d) => {
+    return sum + (d.kind === 'credit' ? d.amount : -d.amount);
+  }, 0);
+  document.getElementById('stat-dues').textContent = formatRupees(totalPendingDues);
+
+  // Render Auto 1 to Auto 6 Cards (Matching Screenshot 3 Left)
+  const container = document.getElementById('auto-cards-list');
+  container.innerHTML = '';
+
+  allAutos.forEach(auto => {
+    const trip = tripMap[auto.id];
+    const status = trip ? trip.status : 'none';
+
+    const statusLabels = {
+      none: 'Not started',
+      draft: 'Draft',
+      out: 'Out on trip',
+      returned: 'Returned'
+    };
+    const badgeClasses = {
+      none: 'badge-none',
+      draft: 'badge-draft',
+      out: 'badge-out',
+      returned: 'badge-returned'
+    };
+
+    const card = document.createElement('div');
+    card.className = 'auto-card st-' + status;
+    card.innerHTML = `
+      <div>
+        <div class="auto-card-name">${auto.name}</div>
+        <div class="auto-card-driver">Driver: ${trip?.driver || auto.default_driver || 'Unassigned'}</div>
+      </div>
+      <span class="badge ${badgeClasses[status]}">${statusLabels[status]}</span>
+    `;
+
+    card.onclick = () => openTripForAuto(auto, trip);
+    container.appendChild(card);
+  });
+}
+
+function openNewTripPrompt() {
+  // Find first auto without an active trip today, or Auto 1
+  const availableAuto = allAutos[0];
+  if (availableAuto) {
+    openTripForAuto(availableAuto, null);
+  }
+}
+
+function openCurrentOrLatestTrip() {
+  if (activeTrip) {
+    showScreen('trip');
+  } else {
+    showScreen('home');
+  }
+}
+
+// --- 4. TRIP SHEET CONTROLLER ---
+
+async function openTripForAuto(auto, existingTrip) {
+  showLoading('Loading trip...');
+  activeTripLines = {};
+  activeCreditEntries = [];
+  currentPaymentData = null;
+
+  if (!existingTrip) {
+    const todayStr = getTodayISODate();
+    const { data: newTrip, error } = await sb.from('trips').insert({
+      trip_date: todayStr,
+      auto_id: auto.id,
+      driver: auto.default_driver || '',
+      status: 'draft',
+      created_by: currentUser.id
+    }).select().single();
+
+    if (error) {
+      hideLoading();
+      alert('Could not start trip sheet: ' + error.message);
+      return;
+    }
+    activeTrip = newTrip;
+  } else {
+    activeTrip = existingTrip;
+
+    // Fetch existing lines
+    const { data: lines } = await sb.from('trip_lines').select('*').eq('trip_id', activeTrip.id);
+    (lines || []).forEach(l => {
+      activeTripLines[l.item_id] = {
+        load_qty: l.load_qty || 0,
+        return_qty: l.return_qty || 0,
+        rate: l.rate || 0,
+        expr: String(l.load_qty || 0),
+        retExpr: String(l.return_qty || 0)
+      };
+    });
+
+    // Fetch payment data
+    const { data: pmt } = await sb.from('payments').select('*').eq('trip_id', activeTrip.id).maybeSingle();
+    currentPaymentData = pmt;
+
+    // Fetch credit dues for this trip
+    const { data: dues } = await sb.from('dues').select('*, shops(name)').eq('trip_id', activeTrip.id).eq('kind', 'credit');
+    activeCreditEntries = (dues || []).map(d => ({
+      id: d.id,
+      shop_id: d.shop_id,
+      shop_name: d.shops?.name || 'Unknown',
+      amount: d.amount
+    }));
+  }
+
+  hideLoading();
+  renderTripSheetUI(auto);
+}
+
+function renderTripSheetUI(auto) {
+  document.getElementById('trip-header-title').textContent = (auto?.name || 'Auto') + ' Trip';
+  document.getElementById('trip-date').value = activeTrip.trip_date || getTodayISODate();
+
+  // Populate Auto dropdown
+  const autoSelect = document.getElementById('trip-auto-select');
+  autoSelect.innerHTML = allAutos.map(a => `<option value="${a.id}" ${a.id === activeTrip.auto_id ? 'selected' : ''}>${a.name}</option>`).join('');
+
+  document.getElementById('trip-driver').value = activeTrip.driver || '';
+  document.getElementById('trip-cso').value = activeTrip.cso || '';
+  document.getElementById('trip-startkm').value = activeTrip.start_km || '';
+  document.getElementById('trip-diesel-load').value = activeTrip.diesel_l || '';
+  document.getElementById('trip-closekm').value = activeTrip.close_km || '';
+  document.getElementById('trip-diesel-eve').value = activeTrip.diesel_l || '';
+
+  // Badge
+  updateTripStatusBadge(activeTrip.status);
+
+  // Render subcomponents
+  renderLoadItemsTable();
+  renderReturnItemsTable();
+  renderDenominationRows();
+  renderTripCreditList();
+  calculateTripMileage();
+  recalculateCashSummary();
+
+  // Switch to Morning Load by default or Return if out
+  if (activeTrip.status === 'out') {
+    setTripTab('return');
+  } else if (activeTrip.status === 'returned') {
+    setTripTab('cash');
+  } else {
+    setTripTab('load');
+  }
+
+  showScreen('trip');
+}
+
+function updateTripStatusBadge(status) {
+  const badge = document.getElementById('trip-status-badge');
+  const labels = { draft: 'Draft', out: 'Out', returned: 'Returned', none: 'Draft' };
+  const classes = { draft: 'badge-draft', out: 'badge-out', returned: 'badge-returned', none: 'badge-none' };
+  badge.className = 'badge ' + (classes[status] || 'badge-none');
+  badge.textContent = labels[status] || 'Draft';
+}
+
+function setTripTab(tabName) {
+  dismissKeypad();
+  ['load', 'return', 'cash'].forEach(t => {
+    document.getElementById('tab-panel-' + t).style.display = (t === tabName) ? 'block' : 'none';
+    const btn = document.getElementById('tab-btn-' + t);
+    if (btn) {
+      if (t === tabName) btn.classList.add('active');
+      else btn.classList.remove('active');
+    }
+  });
+
+  if (tabName === 'return') renderReturnItemsTable();
+  if (tabName === 'cash') recalculateCashSummary();
+}
+
+function onTripAutoSelectChanged() {
+  const autoId = document.getElementById('trip-auto-select').value;
+  const auto = allAutos.find(a => a.id === autoId);
+  if (auto) {
+    document.getElementById('trip-driver').value = auto.default_driver || '';
+  }
+}
+
+// --- 5. MORNING LOAD TABLE & KEYPAD INTERACTION ---
+
+let showAllLoadItems = false;
+
+function toggleShowAllItems() {
+  showAllLoadItems = !showAllLoadItems;
+  const btn = document.getElementById('btn-toggle-show-all');
+  if (btn) btn.textContent = showAllLoadItems ? '👁️ Show Active Only' : '👁️ Show All Items';
+  renderLoadItemsTable();
+}
+
+function filterLoadItems() {
+  renderLoadItemsTable();
+}
+
+function renderLoadItemsTable() {
+  const search = (document.getElementById('load-search-box')?.value || '').toLowerCase().trim();
+  const container = document.getElementById('load-table-rows');
+  container.innerHTML = '';
+
+  let totalCasesLoaded = 0;
+  const groups = {};
+
+  allItems.forEach(item => {
+    const isMatch = !search || item.name.toLowerCase().includes(search) || item.grp.toLowerCase().includes(search);
+    if (!isMatch) return;
+
+    const line = activeTripLines[item.id];
+    const qty = line ? (line.load_qty || 0) : 0;
+    totalCasesLoaded += qty;
+
+    // Filter 0 qty rows unless searching or toggleShowAllItems is on
+    if (!showAllLoadItems && qty === 0 && !search) return;
+
+    if (!groups[item.grp]) groups[item.grp] = [];
+    groups[item.grp].push({ item, qty, line });
+  });
+
+  const groupKeys = Object.keys(groups);
+  if (groupKeys.length === 0) {
+    if (!search && !showAllLoadItems) {
+      // If table is completely empty, show all items automatically
+      showAllLoadItems = true;
+      renderLoadItemsTable();
+      return;
+    }
+    container.innerHTML = `<div style="padding:20px;text-align:center;color:var(--txt-mut);font-size:var(--fs-sm);">No items match search.</div>`;
+    document.getElementById('load-total-cases').textContent = '0 cases';
+    return;
+  }
+
+  groupKeys.forEach(grp => {
+    const div = document.createElement('div');
+    div.className = 'group-divider';
+    div.textContent = grp;
+    container.appendChild(div);
+
+    groups[grp].forEach(({ item, qty, line }) => {
+      const rate = line?.rate || item.rate || 0;
+      const value = qty * rate;
+      const expr = line?.expr || '';
+
+      const row = document.createElement('div');
+      row.className = 'table-row' + (qty > 0 ? ' has-qty' : '') + (kpTargetItemId === item.id && kpMode === 'load' ? ' selected' : '');
+      row.id = 'load-row-' + item.id;
+
+      const formulaSnippet = expr && expr.includes('+') ? `<span class="item-formula">(${expr})</span>` : '';
+
+      row.innerHTML = `
+        <div class="item-name">${item.name} ${formulaSnippet}</div>
+        <div class="item-cases">${qty}</div>
+        <div class="item-val">${qty > 0 ? formatRupees(value) : ''}</div>
+      `;
+
+      row.onclick = () => openInteractiveKeypad(item.id, 'load');
+      container.appendChild(row);
+    });
+  });
+
+  document.getElementById('load-total-cases').textContent = totalCasesLoaded + ' cases';
+}
+
+// --- 6. EVENING RETURN TABLE ---
+
+function renderReturnItemsTable() {
+  const container = document.getElementById('return-table-rows');
+  container.innerHTML = '';
+
+  let totalSaleAmount = 0;
+
+  // Only show items that had a load in morning
+  const loadedItems = allItems.filter(i => (activeTripLines[i.id]?.load_qty || 0) > 0);
+
+  if (!loadedItems.length) {
+    container.innerHTML = `<div style="padding:24px;text-align:center;color:var(--txt-mut);font-size:var(--fs-sm);">No morning load items recorded for this trip yet.</div>`;
+    document.getElementById('return-total-sale').textContent = formatRupees(0);
+    return;
+  }
+
+  const groups = {};
+  loadedItems.forEach(item => {
+    if (!groups[item.grp]) groups[item.grp] = [];
+    groups[item.grp].push(item);
+  });
+
+  Object.entries(groups).forEach(([grp, items]) => {
+    const div = document.createElement('div');
+    div.className = 'group-divider';
+    div.textContent = grp;
+    container.appendChild(div);
+
+    items.forEach(item => {
+      const line = activeTripLines[item.id] || {};
+      const load = line.load_qty || 0;
+      const ret = line.return_qty || 0;
+      const rate = line.rate || item.rate || 0;
+      const sale = Math.max(0, load - ret);
+      const amount = sale * rate;
+      totalSaleAmount += amount;
+
+      const row = document.createElement('div');
+      row.className = 'table-row' + (kpTargetItemId === item.id && kpMode === 'return' ? ' selected' : '');
+      row.id = 'return-row-' + item.id;
+
+      row.innerHTML = `
+        <div class="item-name">${item.name}</div>
+        <div class="col-cases" style="color:var(--txt-mut);">${load}</div>
+        <div class="col-ret" style="font-weight:700;">${ret}</div>
+        <div class="col-sale" style="font-weight:700;">${sale}</div>
+        <div class="col-amt" style="font-weight:700;">${amount > 0 ? formatRupees(amount) : '₹ 0'}</div>
+      `;
+
+      row.onclick = () => openInteractiveKeypad(item.id, 'return');
+      container.appendChild(row);
+    });
+  });
+
+  document.getElementById('return-total-sale').textContent = formatRupees(totalSaleAmount);
+  recalculateCashSummary();
+}
+
+function calculateTripMileage() {
+  const start = parseFloat(document.getElementById('trip-startkm').value) || 0;
+  const close = parseFloat(document.getElementById('trip-closekm').value) || 0;
+  const diesel = parseFloat(document.getElementById('trip-diesel-eve').value) || parseFloat(document.getElementById('trip-diesel-load').value) || 0;
+
+  const dist = Math.max(0, close - start);
+  const mileage = (diesel > 0 && dist > 0) ? (dist / diesel) : 0;
+
+  const box = document.getElementById('mileage-stats-box');
+  if (close > 0 && start > 0) {
+    box.style.display = 'flex';
+    document.getElementById('val-distance').textContent = dist.toFixed(1) + ' km';
+    document.getElementById('val-mileage').textContent = diesel > 0 ? (mileage.toFixed(1) + ' km/L') : '-';
+  } else {
+    box.style.display = 'none';
+  }
+
+  // Update in Cash tab
+  document.getElementById('cash-dist-val').textContent = dist > 0 ? (dist.toFixed(1) + ' km') : '0 km';
+  document.getElementById('cash-mileage-val').textContent = (diesel > 0 && dist > 0) ? (mileage.toFixed(1) + ' km/L') : '-';
+}
+
+function proceedToCashTab() {
+  setTripTab('cash');
+  recalculateCashSummary();
+}
+
+// --- 7. INTERACTIVE NUMBER KEYPAD (Matching Screenshot 1) ---
+
+function openInteractiveKeypad(itemId, mode) {
+  kpTargetItemId = itemId;
+  kpMode = mode;
+
+  const item = allItems.find(i => i.id === itemId);
+  const line = activeTripLines[itemId] || {};
+
+  if (mode === 'load') {
+    kpExpression = line.expr || (line.load_qty > 0 ? String(line.load_qty) : '');
+    document.getElementById('kp-target-title').textContent = (item?.name || 'Item') + ' - Cases Loaded';
+  } else {
+    kpExpression = line.retExpr || (line.return_qty > 0 ? String(line.return_qty) : '');
+    document.getElementById('kp-target-title').textContent = (item?.name || 'Item') + ' - Return Cases';
+  }
+
+  updateKeypadDisplay();
+
+  // Show keypad and spacer
+  document.getElementById('interactive-keypad').style.display = 'block';
+  const spacer = document.getElementById(mode === 'load' ? 'load-keypad-spacer' : 'return-keypad-spacer');
+  if (spacer) spacer.style.display = 'block';
+
+  // Highlight active row
+  highlightActiveRow();
+}
+
+function dismissKeypad() {
+  document.getElementById('interactive-keypad').style.display = 'none';
+  const sp1 = document.getElementById('load-keypad-spacer');
+  const sp2 = document.getElementById('return-keypad-spacer');
+  if (sp1) sp1.style.display = 'none';
+  if (sp2) sp2.style.display = 'none';
+
+  kpTargetItemId = null;
+  kpExpression = '';
+  document.querySelectorAll('.table-row.selected').forEach(r => r.classList.remove('selected'));
+}
+
+function highlightActiveRow() {
+  document.querySelectorAll('.table-row.selected').forEach(r => r.classList.remove('selected'));
+  if (kpTargetItemId) {
+    const row = document.getElementById((kpMode === 'load' ? 'load-row-' : 'return-row-') + kpTargetItemId);
+    if (row) {
+      row.classList.add('selected');
+      row.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+  }
+}
+
+function updateKeypadDisplay() {
+  const disp = document.getElementById('kp-display-number');
+  const prev = document.getElementById('kp-display-preview');
+
+  disp.textContent = kpExpression || '0';
+  if (kpExpression.includes('+')) {
+    const sum = evaluateMathExpression(kpExpression);
+    prev.textContent = '= ' + sum;
+  } else {
+    prev.textContent = '';
+  }
+
+  // Update cases counter in footer
+  let totalCases = 0;
+  Object.values(activeTripLines).forEach(l => {
+    totalCases += (kpMode === 'load' ? (l.load_qty || 0) : (l.return_qty || 0));
+  });
+  document.getElementById('kp-footer-cases').textContent = 'Total Cases: ' + totalCases;
+}
+
+function pressKeypad(key) {
+  if (key === 'backspace') {
+    kpExpression = kpExpression.slice(0, -1);
+  } else if (key === '+') {
+    if (kpExpression && !kpExpression.endsWith('+')) {
+      kpExpression += '+';
+    }
+  } else {
+    kpExpression += key;
+  }
+
+  updateKeypadDisplay();
+  applyKeypadValue();
+}
+
+function pressKeypadNextItem() {
+  applyKeypadValue();
+
+  // Find next item in current list
+  const activeList = kpMode === 'load' ? allItems : allItems.filter(i => (activeTripLines[i.id]?.load_qty || 0) > 0);
+  const currentIndex = activeList.findIndex(i => i.id === kpTargetItemId);
+
+  if (currentIndex >= 0 && currentIndex < activeList.length - 1) {
+    const nextItem = activeList[currentIndex + 1];
+    openInteractiveKeypad(nextItem.id, kpMode);
+  } else {
+    dismissKeypad();
+  }
+}
+
+function applyKeypadValue() {
+  if (!kpTargetItemId) return;
+
+  const value = evaluateMathExpression(kpExpression);
+  const item = allItems.find(i => i.id === kpTargetItemId);
+
+  if (!activeTripLines[kpTargetItemId]) {
+    activeTripLines[kpTargetItemId] = {
+      load_qty: 0,
+      return_qty: 0,
+      rate: item?.rate || 0,
+      expr: '',
+      retExpr: ''
+    };
+  }
+
+  if (kpMode === 'load') {
+    activeTripLines[kpTargetItemId].load_qty = value;
+    activeTripLines[kpTargetItemId].expr = kpExpression;
+    activeTripLines[kpTargetItemId].rate = item?.rate || 0;
+    renderLoadItemsTable();
+    highlightActiveRow();
+    triggerAutosaveDraft();
+  } else {
+    const loadQty = activeTripLines[kpTargetItemId].load_qty || 0;
+    if (value > loadQty) {
+      showErrorMessage('trip-err', `Warning: Return qty (${value}) cannot exceed loaded cases (${loadQty}) for ${item?.name}.`);
+      activeTripLines[kpTargetItemId].return_qty = loadQty;
+      activeTripLines[kpTargetItemId].retExpr = String(loadQty);
+    } else {
+      hideErrorMessage('trip-err');
+      activeTripLines[kpTargetItemId].return_qty = value;
+      activeTripLines[kpTargetItemId].retExpr = kpExpression;
+    }
+    renderReturnItemsTable();
+    highlightActiveRow();
+    triggerAutosaveDraft();
+  }
+}
+
+// Autosave helper with debounce
+let autosaveTimeout = null;
+function triggerAutosaveDraft() {
+  clearTimeout(autosaveTimeout);
+  autosaveTimeout = setTimeout(saveTripDraft, 1800);
+}
+
+// --- 8. CASH DENOMINATIONS & DAY SETTLEMENT (Screenshot 2 Right) ---
+
+function toggleDenominationView() {
+  const container = document.getElementById('denom-inputs-container');
+  const btn = document.getElementById('denom-toggle-btn');
+  const isHidden = container.style.display === 'none';
+  container.style.display = isHidden ? 'block' : 'none';
+  btn.textContent = isHidden ? 'Hide Notes ▲' : 'Edit Notes ▼';
+}
+
+function renderDenominationRows() {
+  const notes = currentPaymentData?.cash_notes || {};
+  const container = document.getElementById('denom-rows-list');
+  container.innerHTML = '';
+
+  CASH_DENOMINATIONS.forEach(({ label, key, value }) => {
+    const count = notes[key] || 0;
+    const row = document.createElement('div');
+    row.className = 'denom-row';
+    row.innerHTML = `
+      <span class="denom-lbl">${label}</span>
+      <input type="number" class="denom-inp" id="input-denom-${key}" value="${count || ''}" placeholder="0" min="0" oninput="recalculateCashSummary()" />
+      <span class="denom-val" id="total-denom-${key}">${count > 0 ? formatRupees(count * value) : '₹ 0'}</span>
+    `;
+    container.appendChild(row);
+  });
+}
+
+function calculateTotalCashFromNotes() {
+  let total = 0;
+  CASH_DENOMINATIONS.forEach(({ key, value }) => {
+    const input = document.getElementById('input-denom-' + key);
+    const count = parseFloat(input?.value) || 0;
+    const rowTotal = count * value;
+    total += rowTotal;
+
+    const label = document.getElementById('total-denom-' + key);
+    if (label) label.textContent = count > 0 ? formatRupees(rowTotal) : '₹ 0';
+  });
+  return total;
+}
+
+function recalculateCashSummary() {
+  // 1. Expected Sale Amount
+  let expectedSales = 0;
+  Object.entries(activeTripLines).forEach(([itemId, line]) => {
+    const item = allItems.find(i => i.id === itemId);
+    const rate = line.rate || item?.rate || 0;
+    const sold = Math.max(0, (line.load_qty || 0) - (line.return_qty || 0));
+    expectedSales += (sold * rate);
+  });
+
+  // 2. Cash from Notes
+  const cashTotal = calculateTotalCashFromNotes();
+  const denomBadge = document.getElementById('denom-total-badge');
+  if (denomBadge) denomBadge.textContent = 'Total: ' + formatRupees(cashTotal);
+
+  // 3. PhonePe
+  const phonepe = parseFloat(document.getElementById('phonepe-input')?.value) || 0;
+
+  // 4. Credit to shops
+  const creditTotal = activeCreditEntries.reduce((sum, e) => sum + (e.amount || 0), 0);
+
+  // 5. Total accounted
+  const totalAccounted = cashTotal + phonepe + creditTotal;
+  const difference = totalAccounted - expectedSales;
+
+  // Update UI Elements
+  document.getElementById('sum-exp-sales').textContent = formatRupees(expectedSales);
+  document.getElementById('sum-cash-hand').textContent = formatRupees(cashTotal);
+  document.getElementById('sum-phonepe').textContent = formatRupees(phonepe);
+  document.getElementById('sum-credit').textContent = formatRupees(creditTotal);
+  document.getElementById('sum-total-accounted').textContent = formatRupees(totalAccounted);
+
+  // Update Status Banner
+  const banner = document.getElementById('settlement-diff-banner');
+  if (Math.abs(difference) < 0.01) {
+    banner.className = 'diff-banner diff-matched';
+    banner.textContent = '✓ Matched';
+  } else if (difference < 0) {
+    banner.className = 'diff-banner diff-short';
+    banner.textContent = 'Short by ' + formatRupees(Math.abs(difference));
+  } else {
+    banner.className = 'diff-banner diff-extra';
+    banner.textContent = 'Extra ' + formatRupees(difference);
+  }
+}
+
+// Credit Entries
+function renderTripCreditList() {
+  const container = document.getElementById('trip-credit-items-list');
+  container.innerHTML = '';
+
+  activeCreditEntries.forEach((entry, index) => {
+    const row = document.createElement('div');
+    row.className = 'credit-entry';
+    row.innerHTML = `
+      <span style="font-weight:700;">${entry.shop_name}</span>
+      <span style="color:var(--amber-text);font-weight:700;">${formatRupees(entry.amount)}</span>
+      <button class="btn btn-xs btn-danger" onclick="removeTripCreditEntry(${index})">✕</button>
+    `;
+    container.appendChild(row);
+  });
+
+  document.getElementById('credit-count-badge').textContent = activeCreditEntries.length + ' shops';
+
+  // Populate Shop Select dropdown
+  const select = document.getElementById('trip-credit-shop-select');
+  select.innerHTML = '<option value="">Select Shop for Credit...</option>' + allShops.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+}
+
+function addShopCreditEntry() {
+  const shopId = document.getElementById('trip-credit-shop-select').value;
+  const amount = parseFloat(document.getElementById('trip-credit-amount').value) || 0;
+
+  if (!shopId || amount <= 0) {
+    alert('Please select a shop and enter credit amount.');
+    return;
+  }
+
+  const shop = allShops.find(s => s.id === shopId);
+  activeCreditEntries.push({
+    shop_id: shopId,
+    shop_name: shop?.name || 'Shop',
+    amount: amount
+  });
+
+  document.getElementById('trip-credit-amount').value = '';
+  renderTripCreditList();
+  recalculateCashSummary();
+}
+
+function removeTripCreditEntry(index) {
+  activeCreditEntries.splice(index, 1);
+  renderTripCreditList();
+  recalculateCashSummary();
+}
+
+// --- 9. DATABASE PERSISTENCE ACTIONS ---
+
+async function persistTripLines() {
+  if (!activeTrip) return;
+  const rows = Object.entries(activeTripLines)
+    .filter(([, l]) => (l.load_qty > 0 || l.return_qty > 0))
+    .map(([itemId, l]) => ({
+      trip_id: activeTrip.id,
+      item_id: itemId,
+      load_qty: l.load_qty || 0,
+      return_qty: l.return_qty || 0,
+      rate: l.rate || 0
+    }));
+
+  if (!rows.length) return;
+  const { error } = await sb.from('trip_lines').upsert(rows, { onConflict: 'trip_id,item_id' });
+  if (error) console.error('Trip lines upsert failed:', error.message);
+}
+
+async function persistTripHeader(newStatus) {
+  if (!activeTrip) return false;
+  const updatePayload = {
+    driver: document.getElementById('trip-driver').value.trim(),
+    cso: document.getElementById('trip-cso').value.trim(),
+    start_km: parseFloat(document.getElementById('trip-startkm').value) || null,
+    diesel_l: parseFloat(document.getElementById('trip-diesel-load').value) || null,
+    status: newStatus,
+    updated_at: new Date().toISOString()
+  };
+
+  if (newStatus === 'returned' || newStatus === 'out') {
+    const closeKm = parseFloat(document.getElementById('trip-closekm').value);
+    if (!isNaN(closeKm)) updatePayload.close_km = closeKm;
+    const dieselEve = parseFloat(document.getElementById('trip-diesel-eve').value);
+    if (!isNaN(dieselEve)) updatePayload.diesel_l = dieselEve;
+  }
+
+  const { error } = await sb.from('trips').update(updatePayload).eq('id', activeTrip.id);
+  if (error) {
+    showErrorMessage('trip-err', 'Save failed: ' + error.message);
+    return false;
+  }
+  activeTrip.status = newStatus;
+  updateTripStatusBadge(newStatus);
+  return true;
+}
+
+async function saveTripDraft() {
+  await persistTripLines();
+  await persistTripHeader(activeTrip.status || 'draft');
+  showToast('Trip draft saved.');
+}
+
+async function saveMorningLoad() {
+  hideErrorMessage('trip-err');
+  const btn = document.getElementById('btn-save-morning');
+  btn.disabled = true;
+  btn.textContent = 'Saving Morning Load...';
+
+  // Snapshot current active rates into trip lines
+  Object.keys(activeTripLines).forEach(itemId => {
+    const item = allItems.find(i => i.id === itemId);
+    if (item) activeTripLines[itemId].rate = item.rate || 0;
+  });
+
+  await persistTripLines();
+  const ok = await persistTripHeader('out');
+  btn.disabled = false;
+  btn.textContent = '✓ Save Morning Load (Out)';
+
+  if (ok) {
+    showToast('Morning load saved! Auto is now OUT on trip.');
+    setTripTab('return');
+  }
+}
+
+async function saveDaySettlement() {
+  hideErrorMessage('trip-err');
+  const btn = document.getElementById('btn-save-day');
+  btn.disabled = true;
+  btn.textContent = 'Saving Day Settlement...';
+
+  const cash = calculateTotalCashFromNotes();
+  const phonepe = parseFloat(document.getElementById('phonepe-input').value) || 0;
+  const credit = activeCreditEntries.reduce((sum, e) => sum + e.amount, 0);
+
+  const cashNotes = {};
+  CASH_DENOMINATIONS.forEach(({ key }) => {
+    const val = parseFloat(document.getElementById('input-denom-' + key)?.value) || 0;
+    if (val > 0) cashNotes[key] = val;
+  });
+
+  // Save payments table
+  const { error: pmtErr } = await sb.from('payments').upsert({
+    trip_id: activeTrip.id,
+    cash,
+    phonepe,
+    credit,
+    cash_notes: cashNotes
+  }, { onConflict: 'trip_id' });
+
+  if (pmtErr) {
+    btn.disabled = false;
+    btn.textContent = 'Save Day (Mark Returned)';
+    showErrorMessage('trip-err', 'Payment error: ' + pmtErr.message);
+    return;
+  }
+
+  // Insert credit dues records
+  for (const entry of activeCreditEntries) {
+    if (entry.id) continue; // Already saved
+    const { data: newDue, error: dueErr } = await sb.from('dues').insert({
+      shop_id: entry.shop_id,
+      trip_id: activeTrip.id,
+      entry_date: getTodayISODate(),
+      kind: 'credit',
+      amount: entry.amount,
+      note: 'Auto delivery credit'
+    }).select().single();
+
+    if (!dueErr && newDue) entry.id = newDue.id;
+  }
+
+  await persistTripLines();
+  const ok = await persistTripHeader('returned');
+  btn.disabled = false;
+  btn.textContent = 'Save Day (Mark Returned)';
+
+  if (ok) {
+    showToast('Day settled! Auto marked as RETURNED.');
+    showScreen('home');
+  }
+}
+
+// --- 10. MENU BAR / PREDEFINED RATES SCREEN ---
+// "need a section that predefine the item value per case wise & per unit wise which is menu bar"
+
+let activeCategoryFilter = 'All';
+
+function loadCatalogMenuScreen() {
+  hideErrorMessage('items-screen-err');
+  const isOwner = currentProfile?.role === 'owner';
+
+  // Toggle Add button visibility based on role
+  const addBtn = document.getElementById('btn-open-add-item-modal');
+  if (addBtn) addBtn.style.display = isOwner ? 'block' : 'none';
+
+  const banner = document.getElementById('role-notice-banner');
+  if (banner) {
+    banner.innerHTML = isOwner
+      ? '👑 <strong>Owner mode:</strong> You can edit predefined rates per case &amp; per unit below.'
+      : 'ℹ️ <strong>Staff mode:</strong> Viewing predefined rates per case &amp; per unit. (Read only)';
+  }
+
+  // Render category pills
+  renderCategoryFilterPills();
+  renderCatalogItemsList();
+}
+
+function renderCategoryFilterPills() {
+  const container = document.getElementById('category-filter-pills');
+  const categories = ['All', '150ml', '200ml', '500/600ml', '1Lt', 'Tins', '2.5Lt', 'Water'];
+
+  container.innerHTML = categories.map(cat => `
+    <button class="cat-pill ${cat === activeCategoryFilter ? 'active' : ''}" onclick="selectCategoryFilter('${cat}')">${cat}</button>
+  `).join('');
+}
+
+function selectCategoryFilter(cat) {
+  activeCategoryFilter = cat;
+  renderCategoryFilterPills();
+  renderCatalogItemsList();
+}
+
+function filterCatalogItems() {
+  renderCatalogItemsList();
+}
+
+function renderCatalogItemsList() {
+  const container = document.getElementById('catalog-items-container');
+  container.innerHTML = '';
+
+  const search = (document.getElementById('catalog-search-box')?.value || '').toLowerCase().trim();
+  const isOwner = currentProfile?.role === 'owner';
+
+  const filtered = allItems.filter(item => {
+    if (activeCategoryFilter !== 'All' && item.grp !== activeCategoryFilter) return false;
+    if (search && !item.name.toLowerCase().includes(search) && !item.grp.toLowerCase().includes(search)) return false;
+    return true;
+  });
+
+  if (!filtered.length) {
+    container.innerHTML = `<div style="padding:24px;text-align:center;color:var(--txt-mut);font-size:var(--fs-sm);">No items match current filters.</div>`;
+    return;
+  }
+
+  filtered.forEach(item => {
+    const units = getUnitsPerCase(item);
+    const caseRate = item.rate || 0;
+    const unitRate = units > 0 ? (caseRate / units) : 0;
+
+    const card = document.createElement('div');
+    card.className = 'rate-card';
+    card.id = 'rate-card-' + item.id;
+
+    if (isOwner) {
+      card.innerHTML = `
+        <div class="rate-card-top">
+          <div>
+            <div class="rate-item-name">${item.name}</div>
+            <div class="rate-item-grp">${item.grp}</div>
+          </div>
+          <div style="display:flex;gap:6px;align-items:center;">
+            <button class="btn btn-xs ${item.active ? 'btn-ghost' : 'btn-danger'}" onclick="toggleItemActiveState('${item.id}', ${!item.active})" style="padding:0 8px;">
+              ${item.active ? 'Active' : 'Off'}
+            </button>
+            <button class="btn btn-xs btn-primary" id="btn-save-rate-${item.id}" onclick="savePredefinedItemRate('${item.id}')">Save ✓</button>
+          </div>
+        </div>
+
+        <div class="rate-inputs-row">
+          <div class="rate-box">
+            <label>Per Case (₹)</label>
+            <input type="number" id="inp-case-rate-${item.id}" value="${caseRate}" placeholder="Case ₹" oninput="onCaseRateInputChanged('${item.id}')" />
+          </div>
+          <div class="rate-box">
+            <label>Units / Case</label>
+            <input type="number" id="inp-units-${item.id}" value="${units}" placeholder="Units" oninput="onCaseRateInputChanged('${item.id}')" />
+          </div>
+          <div class="rate-box">
+            <label>Per Unit (₹)</label>
+            <input type="number" id="inp-unit-rate-${item.id}" value="${unitRate.toFixed(2)}" placeholder="Unit ₹" step="0.5" oninput="onUnitRateInputChanged('${item.id}')" />
+          </div>
+        </div>
+      `;
+    } else {
+      card.innerHTML = `
+        <div class="rate-card-top">
+          <div>
+            <div class="rate-item-name">${item.name}</div>
+            <div class="rate-item-grp">${item.grp} • ${units} units/case</div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-size:var(--fs-lg);font-weight:800;color:var(--grn-text);">${formatRupees(caseRate)} / case</div>
+            <div style="font-size:var(--fs-xs);color:var(--txt-mut);">${formatRupees(unitRate)} / unit</div>
+          </div>
+        </div>
+      `;
+    }
+
+    container.appendChild(card);
+  });
+}
+
+// Live calculation handlers
+function onCaseRateInputChanged(itemId) {
+  const caseRate = parseFloat(document.getElementById('inp-case-rate-' + itemId)?.value) || 0;
+  const units = parseInt(document.getElementById('inp-units-' + itemId)?.value, 10) || 1;
+  const unitRateEl = document.getElementById('inp-unit-rate-' + itemId);
+  if (unitRateEl && units > 0) {
+    unitRateEl.value = (caseRate / units).toFixed(2);
+  }
+}
+
+function onUnitRateInputChanged(itemId) {
+  const unitRate = parseFloat(document.getElementById('inp-unit-rate-' + itemId)?.value) || 0;
+  const units = parseInt(document.getElementById('inp-units-' + itemId)?.value, 10) || 1;
+  const caseRateEl = document.getElementById('inp-case-rate-' + itemId);
+  if (caseRateEl && units > 0) {
+    caseRateEl.value = Math.round(unitRate * units);
+  }
+}
+
+async function savePredefinedItemRate(itemId) {
+  const caseRate = parseFloat(document.getElementById('inp-case-rate-' + itemId)?.value) || 0;
+  const units = parseInt(document.getElementById('inp-units-' + itemId)?.value, 10) || 24;
+
+  const btn = document.getElementById('btn-save-rate-' + itemId);
+  if (btn) btn.textContent = '...';
+
+  // Store units per case in local cache
+  setUnitsPerCase(itemId, units);
+
+  // Update in Supabase
+  let updateObj = { rate: caseRate };
+  const { error } = await sb.from('items').update(updateObj).eq('id', itemId);
+
+  if (error) {
+    showErrorMessage('items-screen-err', 'Failed to update rate: ' + error.message);
+    if (btn) btn.textContent = 'Save ✓';
+    return;
+  }
+
+  // Update in-memory item
+  const item = allItems.find(i => i.id === itemId);
+  if (item) {
+    item.rate = caseRate;
+    item.units_per_case = units;
+  }
+
+  if (btn) {
+    btn.textContent = 'Saved!';
+    btn.classList.remove('btn-primary');
+    btn.classList.add('btn-success');
+    setTimeout(() => {
+      btn.textContent = 'Save ✓';
+      btn.classList.remove('btn-success');
+      btn.classList.add('btn-primary');
+    }, 1200);
+  }
+}
+
+async function toggleItemActiveState(itemId, newState) {
+  const { error } = await sb.from('items').update({ active: newState }).eq('id', itemId);
+  if (error) {
+    alert('Could not change item status: ' + error.message);
+    return;
+  }
+  const item = allItems.find(i => i.id === itemId);
+  if (item) item.active = newState;
+  renderCatalogItemsList();
+}
+
+// Add Item Modal Logic
+function openQuickItemModal() {
+  document.getElementById('modal-item-name').value = '';
+  document.getElementById('modal-item-case-rate').value = '';
+  document.getElementById('modal-item-units-per-case').value = '24';
+  document.getElementById('modal-item-unit-rate').value = '';
+  hideErrorMessage('modal-item-err');
+  document.getElementById('modal-quick-add-item').style.display = 'flex';
+}
+
+function closeQuickItemModal() {
+  document.getElementById('modal-quick-add-item').style.display = 'none';
+}
+
+function calculateUnitFromCaseModal() {
+  const caseRate = parseFloat(document.getElementById('modal-item-case-rate').value) || 0;
+  const units = parseInt(document.getElementById('modal-item-units-per-case').value, 10) || 1;
+  const unitInput = document.getElementById('modal-item-unit-rate');
+  if (units > 0) unitInput.value = (caseRate / units).toFixed(2);
+}
+
+function calculateCaseFromUnitModal() {
+  const unitRate = parseFloat(document.getElementById('modal-item-unit-rate').value) || 0;
+  const units = parseInt(document.getElementById('modal-item-units-per-case').value, 10) || 1;
+  const caseInput = document.getElementById('modal-item-case-rate');
+  if (units > 0) caseInput.value = Math.round(unitRate * units);
+}
+
+async function submitNewItem() {
+  hideErrorMessage('modal-item-err');
+  const grp = document.getElementById('modal-item-grp').value;
+  const name = document.getElementById('modal-item-name').value.trim();
+  const caseRate = parseFloat(document.getElementById('modal-item-case-rate').value) || 0;
+  const units = parseInt(document.getElementById('modal-item-units-per-case').value, 10) || 24;
+
+  if (!name) {
+    showErrorMessage('modal-item-err', 'Please enter item name.');
+    return;
+  }
+
+  const btn = document.getElementById('btn-save-new-item');
+  btn.disabled = true;
+  btn.textContent = 'Adding...';
+
+  const { data: newItem, error } = await sb.from('items').insert({
+    grp: grp,
+    name: name,
+    rate: caseRate,
+    active: true,
+    sort: 9999
+  }).select().single();
+
+  btn.disabled = false;
+  btn.textContent = 'Save Item';
+
+  if (error) {
+    showErrorMessage('modal-item-err', 'Could not add item: ' + error.message);
+    return;
+  }
+
+  // Cache units
+  setUnitsPerCase(newItem.id, units);
+  newItem.units_per_case = units;
+  allItems.push(newItem);
+
+  closeQuickItemModal();
+  showToast('Item ' + name + ' added successfully!');
+
+  // Refresh active views
+  renderCatalogItemsList();
+  renderLoadItemsTable();
+}
+
+// --- 11. SHOPS & DUES MANAGEMENT ---
+
+let selectedShopForDetail = null;
+
+async function loadShopsListScreen() {
+  hideErrorMessage('shops-err');
+  showLoading('Loading dues...');
+  await fetchShops();
+
+  const { data: duesData, error } = await sb.from('dues').select('shop_id, kind, amount');
+  hideLoading();
+
+  if (error) {
+    showErrorMessage('shops-err', 'Could not load dues: ' + error.message);
+    return;
+  }
+
+  const duesMap = {};
+  (duesData || []).forEach(d => {
+    duesMap[d.shop_id] = (duesMap[d.shop_id] || 0) + (d.kind === 'credit' ? d.amount : -d.amount);
+  });
+
+  renderShopsList(duesMap);
+}
+
+function filterShopsList() {
+  loadShopsListScreen();
+}
+
+function renderShopsList(duesMap) {
+  const container = document.getElementById('shops-list-container');
+  container.innerHTML = '';
+
+  const search = (document.getElementById('shops-search-box')?.value || '').toLowerCase().trim();
+
+  const filtered = allShops.filter(s => !search || s.name.toLowerCase().includes(search));
+
+  if (!filtered.length) {
+    container.innerHTML = `<div style="padding:24px;text-align:center;color:var(--txt-mut);font-size:var(--fs-sm);">No shops found.</div>`;
+    return;
+  }
+
+  filtered.forEach(shop => {
+    const due = duesMap[shop.id] || 0;
+    const card = document.createElement('div');
+    card.className = 'auto-card';
+    card.innerHTML = `
+      <div>
+        <div class="auto-card-name">${shop.name}</div>
+        <div class="auto-card-driver">Tap to view ledger history</div>
+      </div>
+      <div style="font-size:var(--fs-lg);font-weight:800;color:${due > 0 ? 'var(--red-text)' : 'var(--grn-text)'};">
+        ${formatRupees(due)}
+      </div>
+    `;
+    card.onclick = () => openShopLedger(shop, due);
+    container.appendChild(card);
+  });
+}
+
+async function openShopLedger(shop, currentDue) {
+  selectedShopForDetail = shop;
+  document.getElementById('shop-detail-name').textContent = shop.name;
+  document.getElementById('shop-detail-due-val').textContent = formatRupees(currentDue);
+  document.getElementById('recv-payment-card').style.display = 'none';
+
+  showScreen('shop-detail');
+  showLoading('Loading ledger...');
+
+  const { data: ledger, error } = await sb.from('dues')
+    .select('*, trips(trip_date, autos(name))')
+    .eq('shop_id', shop.id)
+    .order('entry_date', { ascending: false });
+
+  hideLoading();
+
+  if (error) {
+    showErrorMessage('shop-detail-err', error.message);
+    return;
+  }
+
+  const container = document.getElementById('shop-ledger-history');
+  container.innerHTML = '';
+
+  if (!ledger || !ledger.length) {
+    container.innerHTML = `<div style="padding:20px;text-align:center;color:var(--txt-mut);font-size:var(--fs-sm);">No ledger entries yet.</div>`;
+    return;
+  }
+
+  ledger.forEach(row => {
+    const isCredit = row.kind === 'credit';
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.innerHTML = `
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <span class="badge ${isCredit ? 'badge-out' : 'badge-returned'}">${isCredit ? 'Credit Given' : 'Payment Received'}</span>
+        <span style="font-weight:800;font-size:var(--fs-lg);color:${isCredit ? 'var(--red-text)' : 'var(--grn-text)'};">
+          ${isCredit ? '+' : '-'}${formatRupees(row.amount)}
+        </span>
+      </div>
+      <div style="display:flex;justify-content:space-between;color:var(--txt-mut);font-size:var(--fs-xs);margin-top:8px;">
+        <span>${row.entry_date} ${row.trips?.autos?.name ? '(' + row.trips.autos.name + ')' : ''}</span>
+        <span>${row.note || ''}</span>
+      </div>
+    `;
+    container.appendChild(card);
+  });
+}
+
+function toggleReceivePaymentForm() {
+  const card = document.getElementById('recv-payment-card');
+  card.style.display = card.style.display === 'none' ? 'block' : 'none';
+}
+
+async function submitReceivedPayment() {
+  const amt = parseFloat(document.getElementById('recv-pmt-amount').value) || 0;
+  const note = document.getElementById('recv-pmt-note').value.trim();
+
+  if (amt <= 0) {
+    alert('Please enter a valid payment amount.');
+    return;
+  }
+
+  const btn = document.getElementById('btn-save-recv-payment');
+  btn.disabled = true;
+
+  const { error } = await sb.from('dues').insert({
+    shop_id: selectedShopForDetail.id,
+    entry_date: getTodayISODate(),
+    kind: 'payment',
+    amount: amt,
+    note: note || 'Cash received'
+  });
+
+  btn.disabled = false;
+
+  if (error) {
+    showErrorMessage('shop-detail-err', error.message);
+    return;
+  }
+
+  document.getElementById('recv-pmt-amount').value = '';
+  document.getElementById('recv-pmt-note').value = '';
+  document.getElementById('recv-payment-card').style.display = 'none';
+
+  // Reload ledger
+  const { data: duesData } = await sb.from('dues').select('kind, amount').eq('shop_id', selectedShopForDetail.id);
+  const newDue = (duesData || []).reduce((sum, d) => sum + (d.kind === 'credit' ? d.amount : -d.amount), 0);
+  openShopLedger(selectedShopForDetail, newDue);
+}
+
+function openNewShopModal() {
+  document.getElementById('modal-shop-name').value = '';
+  hideErrorMessage('modal-shop-err');
+  document.getElementById('modal-new-shop').style.display = 'flex';
+}
+
+function closeNewShopModal() {
+  document.getElementById('modal-new-shop').style.display = 'none';
+}
+
+async function submitNewShop() {
+  const name = document.getElementById('modal-shop-name').value.trim();
+  if (!name) {
+    showErrorMessage('modal-shop-err', 'Please enter shop name.');
+    return;
+  }
+
+  const { data: newShop, error } = await sb.from('shops').insert({ name }).select().single();
+  if (error) {
+    showErrorMessage('modal-shop-err', error.message);
+    return;
+  }
+
+  allShops.push(newShop);
+  allShops.sort((a, b) => a.name.localeCompare(b.name));
+
+  closeNewShopModal();
+  showToast('Shop ' + name + ' added!');
+  loadShopsListScreen();
+  renderTripCreditList();
+}
+
+// --- 12. CAMERA SHEET SCAN INTEGRATION ---
+
+function startCameraScan(col) {
+  scanColumn = col;
+  document.getElementById('scan-file-input-' + col).click();
+}
+
+async function onScanFilePicked(event, col) {
+  const file = event.target.files[0];
+  if (!file) return;
+  event.target.value = '';
+
+  const scanBtn = document.getElementById('btn-scan-' + col);
+  scanBtn.disabled = true;
+  scanBtn.textContent = 'Reading sheet... please wait';
+  showLoading('Reading paper sheet with AI... (5-20 sec)');
+
+  try {
+    // Compress image client side to max 1600px, 0.8 JPEG quality
+    const base64Str = await compressFileImage(file, 1600, 0.8);
+    scanBase64Image = base64Str;
+
+    // Active catalog items for AI matching
+    const itemCatalogPayload = allItems.filter(i => i.active).map(i => ({
+      id: i.id,
+      name: i.name,
+      grp: i.grp
+    }));
+
+    const { data, error } = await sb.functions.invoke('scan-sheet', {
+      body: {
+        image_base64: base64Str,
+        mime: 'image/jpeg',
+        column: col,
+        items: itemCatalogPayload
+      }
+    });
+
+    hideLoading();
+    scanBtn.disabled = false;
+    scanBtn.textContent = col === 'load' ? '📷 Scan Paper Sheet' : '📷 Scan Return Sheet';
+
+    if (error || data?.error) {
+      showErrorMessage('trip-err', 'Scan failed: ' + (error?.message || data?.error) + '. You can enter numbers manually.');
+      return;
+    }
+
+    scanResultData = data;
+    openScanReviewScreen(col);
+  } catch (err) {
+    hideLoading();
+    scanBtn.disabled = false;
+    scanBtn.textContent = col === 'load' ? '📷 Scan Paper Sheet' : '📷 Scan Return Sheet';
+    showErrorMessage('trip-err', 'Camera scan error: ' + err.message + '. Please enter numbers by hand.');
+  }
+}
+
+function compressFileImage(file, maxDimension, quality) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = reject;
+    reader.onload = ev => {
+      const img = new Image();
+      img.onerror = reject;
+      img.onload = () => {
+        let w = img.width;
+        let h = img.height;
+        if (Math.max(w, h) > maxDimension) {
+          if (w > h) {
+            h = Math.round((h * maxDimension) / w);
+            w = maxDimension;
+          } else {
+            w = Math.round((w * maxDimension) / h);
+            h = maxDimension;
+          }
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, w, h);
+        const dataUrl = canvas.toDataURL('image/jpeg', quality);
+        resolve(dataUrl.split(',')[1]);
+      };
+      img.src = ev.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+// Matching Screenshot 3 Right (Camera Review)
+function openScanReviewScreen(col) {
+  hideErrorMessage('scan-review-err');
+  const imgDataUrl = 'data:image/jpeg;base64,' + scanBase64Image;
+  document.getElementById('scan-photo-thumbnail').src = imgDataUrl;
+  document.getElementById('photo-full-img').src = imgDataUrl;
+
+  const linesContainer = document.getElementById('scan-recognized-lines');
+  linesContainer.innerHTML = '';
+
+  const lines = scanResultData?.lines || [];
+  let uncertainCount = 0;
+
+  lines.forEach(l => {
+    const item = allItems.find(i => i.id === l.item_id);
+    if (!item) return;
+
+    if (!l.sure) uncertainCount++;
+
+    const row = document.createElement('div');
+    row.className = 'table-row' + (!l.sure ? ' has-qty' : '');
+    row.innerHTML = `
+      <div class="item-name">
+        ${item.name}
+        <div style="font-size:11px;color:var(--txt-dim);">Read: "${l.raw ?? l.qty}"</div>
+      </div>
+      <div class="col-cases" style="font-weight:700;">${l.qty}</div>
+      <div style="width:70px;text-align:right;">
+        <span class="badge ${l.sure ? 'badge-returned' : 'badge-warning'}">${l.sure ? 'Read' : 'Not sure'}</span>
+      </div>
+    `;
+    linesContainer.appendChild(row);
+  });
+
+  document.getElementById('scan-check-badge').textContent = uncertainCount > 0 ? (uncertainCount + ' to check') : 'Verified';
+
+  // Unmatched section
+  const unmatchedContainer = document.getElementById('scan-unmatched-container');
+  unmatchedContainer.innerHTML = '';
+  const unmatched = scanResultData?.unmatched || [];
+
+  if (unmatched.length > 0) {
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.style.borderColor = 'var(--red)';
+    card.innerHTML = `<div class="card-title" style="color:var(--red-text);">Unmatched Items (${unmatched.length})</div>`;
+
+    unmatched.forEach((u, idx) => {
+      const uRow = document.createElement('div');
+      uRow.style.marginBottom = '10px';
+      uRow.innerHTML = `
+        <div style="font-size:var(--fs-sm);margin-bottom:4px;">Paper read: <strong>"${u.raw || u.name}"</strong> (Qty: ${u.qty ?? '?'})</div>
+        <select id="select-unmatched-${idx}">
+          <option value="">-- Skip this line --</option>
+          ${allItems.map(i => `<option value="${i.id}">${i.name} (${i.grp})</option>`).join('')}
+        </select>
+      `;
+      card.appendChild(uRow);
+    });
+    unmatchedContainer.appendChild(card);
+  }
+
+  showScreen('scan-review');
+}
+
+function openFullPhotoView() {
+  document.getElementById('photo-full-overlay').style.display = 'flex';
+}
+
+function closeFullPhotoView() {
+  document.getElementById('photo-full-overlay').style.display = 'none';
+}
+
+function cancelScanReview() {
+  showScreen('trip');
+}
+
+function confirmScanValues() {
+  const lines = scanResultData?.lines || [];
+  const unmatched = scanResultData?.unmatched || [];
+
+  // Check for items that already have existing quantities
+  const willOverwrite = [];
+  lines.forEach(l => {
+    const existing = activeTripLines[l.item_id];
+    if (existing && ((scanColumn === 'load' && existing.load_qty > 0) || (scanColumn === 'return' && existing.return_qty > 0))) {
+      const item = allItems.find(i => i.id === l.item_id);
+      willOverwrite.push(item?.name || 'Item');
+    }
+  });
+
+  if (willOverwrite.length > 0) {
+    if (!confirm('The following items already have quantities entered:\n' + willOverwrite.join(', ') + '\n\nOverwrite with scanned values?')) {
+      return;
+    }
+  }
+
+  // Apply scanned values
+  lines.forEach(l => {
+    if (!activeTripLines[l.item_id]) {
+      activeTripLines[l.item_id] = { load_qty: 0, return_qty: 0, rate: 0, expr: '', retExpr: '' };
+    }
+    const item = allItems.find(i => i.id === l.item_id);
+    const qty = l.qty || 0;
+
+    if (scanColumn === 'load') {
+      activeTripLines[l.item_id].load_qty = qty;
+      activeTripLines[l.item_id].expr = String(qty);
+      activeTripLines[l.item_id].rate = item?.rate || 0;
+    } else {
+      const max = activeTripLines[l.item_id].load_qty || 0;
+      activeTripLines[l.item_id].return_qty = Math.min(qty, max);
+      activeTripLines[l.item_id].retExpr = String(Math.min(qty, max));
+    }
+  });
+
+  // Apply mapped unmatched items
+  unmatched.forEach((u, idx) => {
+    const mappedId = document.getElementById('select-unmatched-' + idx)?.value;
+    if (!mappedId) return;
+
+    if (!activeTripLines[mappedId]) {
+      activeTripLines[mappedId] = { load_qty: 0, return_qty: 0, rate: 0, expr: '', retExpr: '' };
+    }
+    const item = allItems.find(i => i.id === mappedId);
+    const qty = u.qty || 0;
+
+    if (scanColumn === 'load') {
+      activeTripLines[mappedId].load_qty = qty;
+      activeTripLines[mappedId].expr = String(qty);
+      activeTripLines[mappedId].rate = item?.rate || 0;
+    } else {
+      const max = activeTripLines[mappedId].load_qty || 0;
+      activeTripLines[mappedId].return_qty = Math.min(qty, max);
+      activeTripLines[mappedId].retExpr = String(Math.min(qty, max));
+    }
+  });
+
+  // If driver or CSO returned from scan
+  if (scanResultData?.cso) document.getElementById('trip-cso').value = scanResultData.cso;
+  if (scanResultData?.driver) document.getElementById('trip-driver').value = scanResultData.driver;
+
+  showScreen('trip');
+  setTripTab(scanColumn === 'load' ? 'load' : 'return');
+  renderLoadItemsTable();
+  renderReturnItemsTable();
+  showToast('Scanned quantities filled into sheet!');
+}
+
+// --- 13. DISTRIBUTION REPORTS SCREEN ---
+
+function initReportsDateRange() {
+  const today = getTodayISODate();
+  document.getElementById('rpt-from-date').value = today;
+  document.getElementById('rpt-to-date').value = today;
+  loadReportsData();
+}
+
+async function loadReportsData() {
+  hideErrorMessage('reports-err');
+  const from = document.getElementById('rpt-from-date').value;
+  const to = document.getElementById('rpt-to-date').value;
+
+  if (!from || !to) return;
+  showLoading('Compiling reports...');
+
+  const { data: trips, error: tripErr } = await sb.from('trips')
+    .select('*, autos(name)')
+    .gte('trip_date', from)
+    .lte('trip_date', to)
+    .order('trip_date', { ascending: false });
+
+  if (tripErr) {
+    hideLoading();
+    showErrorMessage('reports-err', tripErr.message);
+    return;
+  }
+
+  const container = document.getElementById('reports-output-container');
+  container.innerHTML = '';
+
+  if (!trips || !trips.length) {
+    hideLoading();
+    container.innerHTML = `<div style="padding:24px;text-align:center;color:var(--txt-mut);font-size:var(--fs-sm);">No trips found in selected date range.</div>`;
+    return;
+  }
+
+  const tripIds = trips.map(t => t.id);
+
+  // Fetch trip lines and payments in parallel
+  const [{ data: lines }, { data: payments }] = await Promise.all([
+    sb.from('trip_lines').select('*').in('trip_id', tripIds),
+    sb.from('payments').select('*').in('trip_id', tripIds)
+  ]);
+
+  hideLoading();
+
+  const linesMap = {};
+  (lines || []).forEach(l => {
+    if (!linesMap[l.trip_id]) linesMap[l.trip_id] = [];
+    linesMap[l.trip_id].push(l);
+  });
+
+  const pmtMap = {};
+  (payments || []).forEach(p => {
+    pmtMap[p.trip_id] = p;
+  });
+
+  let grandTotal = {
+    loaded: 0,
+    sold: 0,
+    saleAmount: 0,
+    cash: 0,
+    phonepe: 0,
+    credit: 0,
+    km: 0
+  };
+
+  const rowsHtml = trips.map(trip => {
+    const tripLines = linesMap[trip.id] || [];
+    const pmt = pmtMap[trip.id] || {};
+
+    let loaded = 0;
+    let sold = 0;
+    let amount = 0;
+
+    tripLines.forEach(l => {
+      loaded += (l.load_qty || 0);
+      const s = Math.max(0, (l.load_qty || 0) - (l.return_qty || 0));
+      sold += s;
+      amount += (s * (l.rate || 0));
+    });
+
+    const cash = pmt.cash || 0;
+    const phonepe = pmt.phonepe || 0;
+    const credit = pmt.credit || 0;
+    const totalCollected = cash + phonepe + credit;
+    const diff = totalCollected - amount;
+
+    const km = (trip.close_km && trip.start_km) ? (trip.close_km - trip.start_km) : 0;
+    const diesel = trip.diesel_l || 0;
+    const mileage = (diesel > 0 && km > 0) ? (km / diesel) : 0;
+
+    grandTotal.loaded += loaded;
+    grandTotal.sold += sold;
+    grandTotal.saleAmount += amount;
+    grandTotal.cash += cash;
+    grandTotal.phonepe += phonepe;
+    grandTotal.credit += credit;
+    grandTotal.km += km;
+
+    const diffColor = diff < 0 ? 'var(--red-text)' : (diff > 0 ? 'var(--grn-text)' : 'var(--txt-mut)');
+    const diffLabel = diff < 0 ? ('Short ' + formatRupees(Math.abs(diff))) : (diff > 0 ? ('Extra ' + formatRupees(diff)) : 'Matched');
+
+    return `
+      <tr>
+        <td><strong>${trip.autos?.name || 'Auto'}</strong></td>
+        <td>${trip.trip_date}</td>
+        <td>${loaded}</td>
+        <td>${sold}</td>
+        <td style="color:var(--grn-text);">${formatRupees(amount)}</td>
+        <td>${formatRupees(cash)}</td>
+        <td>${formatRupees(phonepe)}</td>
+        <td>${formatRupees(credit)}</td>
+        <td style="color:${diffColor};font-weight:700;">${diffLabel}</td>
+        <td>${km > 0 ? (km + ' km') : '-'}</td>
+        <td>${mileage > 0 ? (mileage.toFixed(1) + ' km/L') : '-'}</td>
+      </tr>
+    `;
+  }).join('');
+
+  container.innerHTML = `
+    <div class="rpt-table-wrap">
+      <table class="rpt-table">
+        <thead>
+          <tr>
+            <th>Auto</th>
+            <th>Date</th>
+            <th>Loaded</th>
+            <th>Sold</th>
+            <th>Sale Amt</th>
+            <th>Cash</th>
+            <th>PhonePe</th>
+            <th>Credit</th>
+            <th>Difference</th>
+            <th>KM</th>
+            <th>Mileage</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rowsHtml}
+          <tr>
+            <td colspan="2">TOTAL</td>
+            <td>${grandTotal.loaded}</td>
+            <td>${grandTotal.sold}</td>
+            <td style="color:var(--grn-text);">${formatRupees(grandTotal.saleAmount)}</td>
+            <td>${formatRupees(grandTotal.cash)}</td>
+            <td>${formatRupees(grandTotal.phonepe)}</td>
+            <td>${formatRupees(grandTotal.credit)}</td>
+            <td>-</td>
+            <td>${grandTotal.km > 0 ? (grandTotal.km + ' km') : '-'}</td>
+            <td>-</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  `;
+}
+
+// Global Keyboard shortcuts
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && document.getElementById('screen-login').classList.contains('active')) {
+    handleLogin();
+  }
+  if (e.key === 'Escape') {
+    dismissKeypad();
+    closeFullPhotoView();
+    closeQuickItemModal();
+    closeNewShopModal();
+  }
+});
+</script>
+</body>
+</html>
