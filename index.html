@@ -2,11 +2,25 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#0c0e14" />
   <title>Arjun Traders - Trip Sheet & Vehicle Sale Report</title>
   <!-- Supabase JS v2 pinned -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js">
+// Offline Detection & Auto-sync alerts
+window.addEventListener('online', () => {
+  const banner = document.getElementById('offline-banner');
+  if (banner) banner.style.display = 'none';
+  showToast('Internet restored. Syncing data...');
+  if (activeTrip) triggerAutosaveDraft();
+});
+
+window.addEventListener('offline', () => {
+  const banner = document.getElementById('offline-banner');
+  if (banner) banner.style.display = 'block';
+});
+
+</script>
 
   <style>
     :root {
@@ -1351,9 +1365,98 @@
       height: 0;
       pointer-events: none;
     }
+
+    /* Responsive Table Wrap (Prevents 360px phones from scrolling horizontally) */
+    .table-responsive {
+      width: 100%;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      margin-bottom: 12px;
+      border-radius: var(--radius-sm);
+    }
+    .table-responsive table {
+      width: 100%;
+      min-width: 100%;
+      border-collapse: collapse;
+    }
+
+    /* Offline Alert Banner */
+    .offline-banner {
+      background: #dc2626;
+      color: #ffffff;
+      text-align: center;
+      padding: 10px 14px;
+      font-weight: 700;
+      font-size: var(--fs-sm);
+      display: none;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+    }
+
+    /* Free Water Bottle Scheme Badges & Styles */
+    .badge-free {
+      background: #0284c7;
+      color: #ffffff;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+    }
+    .badge-adjusted {
+      background: #d97706;
+      color: #ffffff;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .free-water-box {
+      background: var(--card-sub);
+      border: 1px solid var(--bdr);
+      border-left: 4px solid #0284c7;
+      border-radius: var(--radius-sm);
+      padding: 12px 14px;
+      margin: 12px 0;
+    }
+    .free-water-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 8px;
+    }
+    .calc-tag {
+      font-size: 11px;
+      color: var(--txt-mut);
+      font-style: italic;
+      margin-left: 4px;
+    }
+
+    /* Sticky Bottom Action Bar for Mobile Phones */
+    .sticky-bottom-bar {
+      position: sticky;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: var(--card-bg);
+      border-top: 1px solid var(--bdr);
+      padding: 10px 14px;
+      padding-bottom: max(12px, env(safe-area-inset-bottom));
+      display: flex;
+      gap: 10px;
+      z-index: 85;
+      box-shadow: 0 -4px 15px rgba(0,0,0,0.25);
+    }
+
   </style>
 </head>
 <body>
+  <div id="offline-banner" class="offline-banner">⚠️ No internet. Your changes are not saved yet. Retrying automatically...</div>
 <div id="app">
 
   <!-- ==================== DESKTOP TOP NAVIGATION HEADER ==================== -->
@@ -1909,7 +2012,13 @@
     <div class="scroll-body">
       <div id="reports-err" class="errmsg"></div>
 
-      <div class="card" style="max-width:600px;">
+      <div class="card" style="width:100%;max-width:100%;margin-bottom:14px;">
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;">
+          <button class="btn btn-xs btn-outline" onclick="setReportsDateRange('today')">Today</button>
+          <button class="btn btn-xs btn-outline" onclick="setReportsDateRange('week')">This Week</button>
+          <button class="btn btn-xs btn-outline" onclick="setReportsDateRange('month')">This Month</button>
+          <button class="btn btn-xs btn-success" onclick="downloadReportsCSV()" style="margin-left:auto;gap:4px;">📥 Export CSV</button>
+        </div>
         <div class="row2">
           <div class="fg" style="margin:0;">
             <label>From Date</label>
@@ -1919,6 +2028,12 @@
             <label>To Date</label>
             <input type="date" id="rpt-to-date" onchange="loadReportsData()" />
           </div>
+        </div>
+        <div class="fg" style="margin-top:10px;margin-bottom:0;">
+          <label>Filter by Auto (Optional)</label>
+          <select id="rpt-auto-filter" onchange="loadReportsData()">
+            <option value="">All Autos</option>
+          </select>
         </div>
       </div>
 
@@ -2172,6 +2287,194 @@ const CASH_DENOMINATIONS = [
   { label: 'Change', key: 'change', value: 1 }
 ];
 
+
+// Promotional 1-Litre water bottle cost to business (editable via Settings table)
+let DEFAULT_BOTTLE_COST = 10.40;
+let currentBottleCost = 10.40;
+let adjustTargetItemId = null;
+
+async function fetchAppSettings() {
+  try {
+    const { data, error } = await sb.from('settings').select('*');
+    if (!error && data) {
+      const bCost = data.find(s => s.key === 'bottle_cost');
+      if (bCost && !isNaN(parseFloat(bCost.value))) {
+        currentBottleCost = parseFloat(bCost.value);
+      }
+    }
+  } catch (e) {
+    console.warn('Could not read settings table:', e);
+  }
+  const inp = document.getElementById('inp-setting-bottle-cost');
+  if (inp) inp.value = currentBottleCost.toFixed(2);
+}
+
+async function saveBottleCostSetting() {
+  const inp = document.getElementById('inp-setting-bottle-cost');
+  const val = parseFloat(inp?.value);
+  if (isNaN(val) || val <= 0) {
+    alert('Please enter a valid bottle cost in rupees (e.g. 10.40).');
+    return;
+  }
+  const btn = document.getElementById('btn-save-bottle-cost');
+  if (btn) btn.textContent = 'Saving...';
+
+  const { error } = await sb.from('settings').upsert({
+    key: 'bottle_cost',
+    value: val.toFixed(2),
+    updated_at: new Date().toISOString()
+  });
+
+  if (error) {
+    alert('Failed to save bottle cost: ' + error.message);
+    if (btn) btn.textContent = 'Save Cost';
+    return;
+  }
+  currentBottleCost = val;
+  if (btn) {
+    btn.textContent = 'Saved ✓';
+    btn.classList.add('btn-success');
+    setTimeout(() => {
+      btn.textContent = 'Save Cost';
+      btn.classList.remove('btn-success');
+    }, 1500);
+  }
+  showToast(`Bottle cost updated to ₹ ${val.toFixed(2)}`);
+  renderReturnItemsTable();
+}
+
+function getFreeBottleStatsForLine(item, line) {
+  const load = line?.load_qty || 0;
+  const ret = line?.return_qty || 0;
+  const sold = Math.max(0, load - ret);
+  
+  // Rule precedence: stored on line > item specific > brand > group
+  let rulePerCase = 0;
+  if (line?.free_per_case_used !== undefined && line?.free_per_case_used !== null) {
+    rulePerCase = Number(line.free_per_case_used);
+  } else if (item?.free_bottles_per_case !== undefined && item?.free_bottles_per_case !== null) {
+    rulePerCase = Number(item.free_bottles_per_case);
+  } else {
+    // Fallback using group rules
+    const grp = (item?.grp || '').toLowerCase();
+    const name = (item?.name || '').toLowerCase();
+    if (name.includes('vibe')) {
+      rulePerCase = 1;
+    } else if (name.includes('soda 500') || (name.includes('soda') && grp.includes('500'))) {
+      rulePerCase = 1;
+    } else if (grp.includes('150') || grp.includes('200')) {
+      rulePerCase = 1;
+    } else if (grp.includes('500') || grp.includes('600')) {
+      rulePerCase = 2;
+    } else {
+      rulePerCase = 0;
+    }
+  }
+
+  const ruleCalculated = sold * rulePerCase;
+  const isAdjusted = line?.free_adjusted !== undefined && line?.free_adjusted !== null;
+  const effectiveCount = isAdjusted ? Number(line.free_adjusted) : ruleCalculated;
+  const bottleCost = (line?.bottle_cost_used !== undefined && line?.bottle_cost_used !== null)
+    ? Number(line.bottle_cost_used)
+    : currentBottleCost;
+  const totalCost = effectiveCount * bottleCost;
+
+  return {
+    sold,
+    rulePerCase,
+    ruleCalculated,
+    isAdjusted,
+    effectiveCount,
+    bottleCost,
+    totalCost
+  };
+}
+
+function openFreeAdjustModal(itemId) {
+  triggerHaptic();
+  adjustTargetItemId = itemId;
+  const item = allItems.find(i => i.id === itemId);
+  const line = activeTripLines[itemId] || {};
+  const stats = getFreeBottleStatsForLine(item, line);
+
+  document.getElementById('modal-free-item-id').value = itemId;
+  document.getElementById('modal-free-item-name').textContent = item?.name || 'Item';
+  document.getElementById('modal-free-desc').innerHTML = `
+    Sold: <strong>${stats.sold} cases</strong> • Rule: <strong>${stats.rulePerCase} btl/case</strong><br/>
+    Rule Calculated: <strong>${stats.ruleCalculated} bottles</strong>
+    ${stats.isAdjusted ? '<br/><span style="color:var(--amber-text);font-weight:700;">Currently adjusted</span>' : ''}
+  `;
+  document.getElementById('inp-free-adjusted-val').value = stats.effectiveCount;
+  document.getElementById('modal-free-adjust').style.display = 'flex';
+}
+
+function closeFreeAdjustModal() {
+  document.getElementById('modal-free-adjust').style.display = 'none';
+  adjustTargetItemId = null;
+}
+
+function saveFreeBottleAdjustment() {
+  const itemId = document.getElementById('modal-free-item-id').value;
+  const adjustedVal = parseInt(document.getElementById('inp-free-adjusted-val').value, 10);
+  if (isNaN(adjustedVal) || adjustedVal < 0) {
+    alert('Please enter a valid non-negative number of bottles.');
+    return;
+  }
+  if (!activeTripLines[itemId]) {
+    activeTripLines[itemId] = { load_qty: 0, return_qty: 0, rate: 0 };
+  }
+  activeTripLines[itemId].free_adjusted = adjustedVal;
+  closeFreeAdjustModal();
+  renderReturnItemsTable();
+  recalculateCashSummary();
+  triggerAutosaveDraft();
+  showToast('Free bottles adjusted to ' + adjustedVal);
+}
+
+function resetFreeToRule() {
+  const itemId = document.getElementById('modal-free-item-id').value;
+  if (activeTripLines[itemId]) {
+    delete activeTripLines[itemId].free_adjusted;
+  }
+  closeFreeAdjustModal();
+  renderReturnItemsTable();
+  recalculateCashSummary();
+  triggerAutosaveDraft();
+  showToast('Reset to original rule calculation.');
+}
+
+function openRenameShopModal(shopId, currentName) {
+  document.getElementById('rename-shop-id').value = shopId;
+  document.getElementById('rename-shop-name-input').value = currentName || '';
+  document.getElementById('rename-shop-err').style.display = 'none';
+  document.getElementById('modal-rename-shop').style.display = 'flex';
+}
+
+function closeRenameShopModal() {
+  document.getElementById('modal-rename-shop').style.display = 'none';
+}
+
+async function submitRenameShop() {
+  const id = document.getElementById('rename-shop-id').value;
+  const name = document.getElementById('rename-shop-name-input').value.trim();
+  if (!name) {
+    showErrorMessage('rename-shop-err', 'Shop name cannot be blank.');
+    return;
+  }
+  showLoading('Renaming shop...');
+  const { error } = await sb.from('shops').update({ name }).eq('id', id);
+  hideLoading();
+  if (error) {
+    showErrorMessage('rename-shop-err', 'Failed to rename shop: ' + error.message);
+    return;
+  }
+  const s = allShops.find(shop => shop.id === id);
+  if (s) s.name = name;
+  closeRenameShopModal();
+  showToast('Shop renamed successfully.');
+  loadShopsList();
+}
+
 const GROUP_DEFAULT_UNITS = {
   '150ml': 30,
   '200ml': 24,
@@ -2411,6 +2714,10 @@ async function loadUserProfileAndBootstrap() {
 async function fetchAutos() {
   const { data } = await sb.from('autos').select('*').order('name');
   allAutos = data || [];
+  const filterSelect = document.getElementById('rpt-auto-filter');
+  if (filterSelect) {
+    filterSelect.innerHTML = '<option value="">All Autos</option>' + allAutos.map(a => `<option value="${a.id}">${a.name}</option>`).join('');
+  }
 }
 
 async function fetchCatalogItems() {
@@ -2552,6 +2859,9 @@ async function openTripForAuto(auto, existingTrip) {
         load_qty: l.load_qty || 0,
         return_qty: l.return_qty || 0,
         rate: l.rate || 0,
+        free_per_case_used: l.free_per_case_used,
+        free_adjusted: l.free_adjusted,
+        bottle_cost_used: l.bottle_cost_used,
         expr: String(l.load_qty || 0),
         retExpr: String(l.return_qty || 0)
       };
@@ -2571,6 +2881,15 @@ async function openTripForAuto(auto, existingTrip) {
 
   hideLoading();
   renderTripSheetUI(auto);
+  const editInfoEl = document.getElementById('trip-last-edited-info');
+  if (editInfoEl && activeTrip) {
+    if (activeTrip.updated_at) {
+      const d = new Date(activeTrip.updated_at);
+      editInfoEl.textContent = `Last edited: ${d.toLocaleDateString('en-IN')} ${d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}`;
+    } else {
+      editInfoEl.textContent = `Created: ${activeTrip.trip_date || 'Today'}`;
+    }
+  }
 }
 
 // 1-Tap Quick Auto Switcher Strip rendering
@@ -2741,9 +3060,10 @@ function renderLoadItemsTable() {
       row.id = 'load-row-' + item.id;
 
       const formulaSnippet = expr && expr.includes('+') ? `<span class="item-formula">(${expr})</span>` : '';
+      const rateWarning = rate === 0 ? '<span style="color:var(--amber-text);font-size:11px;font-weight:700;margin-left:4px;">(Rate not set)</span>' : '';
 
       row.innerHTML = `
-        <div class="item-name">${item.name} ${formulaSnippet}</div>
+        <div class="item-name">${item.name} ${rateWarning} ${formulaSnippet}</div>
         <div class="item-cases">${qty}</div>
         <div class="item-val">${qty > 0 ? formatRupees(value) : ''}</div>
       `;
@@ -2763,6 +3083,8 @@ function renderReturnItemsTable() {
   container.innerHTML = '';
 
   let totalSaleAmount = 0;
+  let totalFreeBottles = 0;
+  let totalFreeCost = 0;
   const loadedItems = allItems.filter(i => (activeTripLines[i.id]?.load_qty || 0) > 0);
 
   if (!loadedItems.length) {
@@ -2792,16 +3114,34 @@ function renderReturnItemsTable() {
       const amount = sale * rate;
       totalSaleAmount += amount;
 
+      const stats = getFreeBottleStatsForLine(item, line);
+      totalFreeBottles += stats.effectiveCount;
+      totalFreeCost += stats.totalCost;
+
+      let freeBadgeHtml = '';
+      if (stats.rulePerCase > 0 || stats.isAdjusted) {
+        if (stats.isAdjusted) {
+          freeBadgeHtml = `<span class="badge-adjusted" onclick="event.stopPropagation();openFreeAdjustModal('${item.id}')" title="Adjusted by owner. Tap to change.">💧 ${stats.effectiveCount} btls (Adj, Rule: ${stats.ruleCalculated})</span>`;
+        } else if (stats.effectiveCount > 0) {
+          freeBadgeHtml = `<span class="badge-free" onclick="event.stopPropagation();openFreeAdjustModal('${item.id}')" title="Tap to adjust for special cases">💧 ${stats.effectiveCount} btls (${stats.rulePerCase}/cs)</span>`;
+        } else {
+          freeBadgeHtml = `<span style="font-size:11px;color:var(--txt-dim);cursor:pointer;" onclick="event.stopPropagation();openFreeAdjustModal('${item.id}')">💧 0 btls (${stats.rulePerCase}/cs)</span>`;
+        }
+      }
+
       const row = document.createElement('div');
       row.className = 'table-row' + (kpTargetItemId === item.id && kpMode === 'return' ? ' selected' : '');
       row.id = 'return-row-' + item.id;
 
       row.innerHTML = `
-        <div class="item-name">${item.name}</div>
+        <div class="item-name">
+          <div>${item.name} ${rate === 0 ? '<span style="color:var(--amber-text);font-size:11px;font-weight:700;">(Rate not set)</span>' : ''}</div>
+          <div style="margin-top:3px;">${freeBadgeHtml}</div>
+        </div>
         <div class="col-cases" style="color:var(--txt-mut);">${load}</div>
         <div class="col-ret" style="font-weight:700;">${ret}</div>
-        <div class="col-sale" style="font-weight:700;">${sale}</div>
-        <div class="col-amt" style="font-weight:700;">${amount > 0 ? formatRupees(amount) : '₹ 0'}</div>
+        <div class="col-sale" style="font-weight:700;color:var(--grn-text);">${sale} <span class="calc-tag">(calc)</span></div>
+        <div class="col-amt" style="font-weight:700;color:var(--grn-text);">${amount > 0 ? formatRupees(amount) : '₹ 0'} <span class="calc-tag">(calc)</span></div>
       `;
 
       row.onclick = () => openInteractiveKeypad(item.id, 'return');
@@ -2810,6 +3150,20 @@ function renderReturnItemsTable() {
   });
 
   document.getElementById('return-total-sale').textContent = formatRupees(totalSaleAmount);
+
+  // Update Free Bottles Panel
+  const bTotalEl = document.getElementById('ret-free-bottles-total');
+  if (bTotalEl) bTotalEl.textContent = totalFreeBottles + ' btls';
+  const bBadgeEl = document.getElementById('ret-free-bottles-badge');
+  if (bBadgeEl) bBadgeEl.textContent = totalFreeBottles + ' bottles';
+  const bRateEl = document.getElementById('ret-free-cost-rate');
+  if (bRateEl) bRateEl.textContent = currentBottleCost.toFixed(2);
+  const bCostEl = document.getElementById('ret-free-cost-total');
+  if (bCostEl) bCostEl.textContent = formatRupees(totalFreeCost);
+
+  const cashFreeVal = document.getElementById('cash-free-bottles-val');
+  if (cashFreeVal) cashFreeVal.textContent = `${totalFreeBottles} btls (Cost: ${formatRupees(totalFreeCost)})`;
+
   recalculateCashSummary();
 }
 
@@ -3145,14 +3499,21 @@ function removeTripCreditEntry(index) {
 async function persistTripLines() {
   if (!activeTrip) return;
   const rows = Object.entries(activeTripLines)
-    .filter(([, l]) => (l.load_qty > 0 || l.return_qty > 0))
-    .map(([itemId, l]) => ({
-      trip_id: activeTrip.id,
-      item_id: itemId,
-      load_qty: l.load_qty || 0,
-      return_qty: l.return_qty || 0,
-      rate: l.rate || 0
-    }));
+    .filter(([, l]) => (l.load_qty > 0 || l.return_qty > 0 || l.free_adjusted !== undefined))
+    .map(([itemId, l]) => {
+      const item = allItems.find(i => i.id === itemId);
+      const stats = getFreeBottleStatsForLine(item, l);
+      return {
+        trip_id: activeTrip.id,
+        item_id: itemId,
+        load_qty: l.load_qty || 0,
+        return_qty: l.return_qty || 0,
+        rate: l.rate !== undefined ? l.rate : (item?.rate || 0),
+        free_per_case_used: stats.rulePerCase,
+        free_adjusted: (l.free_adjusted !== undefined && l.free_adjusted !== null) ? Number(l.free_adjusted) : null,
+        bottle_cost_used: stats.bottleCost
+      };
+    });
 
   if (!rows.length) return;
   const { error } = await sb.from('trip_lines').upsert(rows, { onConflict: 'trip_id,item_id' });
@@ -3161,6 +3522,17 @@ async function persistTripLines() {
 
 async function persistTripHeader(newStatus) {
   if (!activeTrip) return false;
+
+  // Concurrency check before overwriting
+  try {
+    const { data: latestTrip } = await sb.from('trips').select('updated_at').eq('id', activeTrip.id).maybeSingle();
+    if (latestTrip?.updated_at && activeTrip.updated_at && latestTrip.updated_at > activeTrip.updated_at) {
+      if (!confirm('⚠️ Warning: This trip sheet was updated by another device or user recently. Overwrite with your latest changes?')) {
+        return false;
+      }
+    }
+  } catch (e) {}
+
   const updatePayload = {
     driver: document.getElementById('trip-driver').value.trim(),
     cso: document.getElementById('trip-cso').value.trim(),
@@ -3401,7 +3773,7 @@ function loadCatalogMenuScreen() {
 
 function renderCategoryFilterPills() {
   const container = document.getElementById('category-filter-pills');
-  const categories = ['All', '150ml', '200ml', '500/600ml', '1Lt', 'Tins', '2.5Lt', 'Water'];
+  const categories = ['All', '150ml', '200ml', '500/600ml', '1 Lt', 'Tins', '2.5 Lt', 'Water', 'Others'];
 
   container.innerHTML = categories.map(cat => `
     <button class="cat-pill ${cat === activeCategoryFilter ? 'active' : ''}" onclick="selectCategoryFilter('${cat}')">${cat}</button>
@@ -3474,6 +3846,10 @@ function renderCatalogItemsList() {
             <label>Per Unit (₹)</label>
             <input type="number" id="inp-unit-rate-${item.id}" value="${unitRate.toFixed(2)}" placeholder="Unit ₹" step="0.5" oninput="onUnitRateInputChanged('${item.id}')" />
           </div>
+          <div class="rate-box">
+            <label>Free 1L/Cs</label>
+            <input type="number" id="inp-free-btl-${item.id}" value="${item.free_bottles_per_case ?? 0}" min="0" step="1" title="Free 1L bottles given per case sold" />
+          </div>
         </div>
       `;
     } else {
@@ -3521,8 +3897,9 @@ async function savePredefinedItemRate(itemId) {
   if (btn) btn.textContent = '...';
 
   setUnitsPerCase(itemId, units);
+  const freeBtl = parseFloat(document.getElementById('inp-free-btl-' + itemId)?.value) || 0;
 
-  let updateObj = { rate: caseRate };
+  let updateObj = { rate: caseRate, free_bottles_per_case: freeBtl };
   const { error } = await sb.from('items').update(updateObj).eq('id', itemId);
 
   if (error) {
@@ -3535,6 +3912,7 @@ async function savePredefinedItemRate(itemId) {
   if (item) {
     item.rate = caseRate;
     item.units_per_case = units;
+    item.free_bottles_per_case = freeBtl;
   }
 
   if (btn) {
@@ -3603,10 +3981,12 @@ async function submitNewItem() {
   btn.disabled = true;
   btn.textContent = 'Adding...';
 
+  const freeBtl = parseFloat(document.getElementById('modal-item-free-btl')?.value) || 0;
   const { data: newItem, error } = await sb.from('items').insert({
     grp: grp,
     name: name,
     rate: caseRate,
+    free_bottles_per_case: freeBtl,
     active: true,
     sort: 9999
   }).select().single();
@@ -4042,6 +4422,67 @@ function confirmScanValues() {
 
 // --- 14. DISTRIBUTION REPORTS SCREEN ---
 
+
+function setReportsDateRange(period) {
+  const today = new Date();
+  const toStr = today.toISOString().split('T')[0];
+  let fromStr = toStr;
+
+  if (period === 'today') {
+    fromStr = toStr;
+  } else if (period === 'week') {
+    const d = new Date();
+    d.setDate(d.getDate() - 7);
+    fromStr = d.toISOString().split('T')[0];
+  } else if (period === 'month') {
+    const d = new Date();
+    d.setMonth(d.getMonth() - 1);
+    fromStr = d.toISOString().split('T')[0];
+  }
+
+  document.getElementById('rpt-from-date').value = fromStr;
+  document.getElementById('rpt-to-date').value = toStr;
+  loadReportsData();
+}
+
+function downloadReportsCSV() {
+  const rows = window.lastReportRows || [];
+  if (!rows.length) {
+    alert('No report data available to export.');
+    return;
+  }
+
+  const headers = ['Auto', 'Date', 'Loaded Cases', 'Sold Cases', 'Free 1L Bottles', 'Free Bottle Cost (INR)', 'Sale Amount (INR)', 'Cash (INR)', 'PhonePe (INR)', 'Credit (INR)', 'Difference (INR)', 'KM Run', 'Mileage (KM/L)'];
+  const csvContent = [
+    headers.join(','),
+    ...rows.map(r => [
+      `"${r.auto}"`,
+      `"${r.date}"`,
+      r.loaded,
+      r.sold,
+      r.freeBottles,
+      r.freeCost,
+      r.saleAmount,
+      r.cash,
+      r.phonepe,
+      r.credit,
+      r.diff,
+      r.km,
+      `"${r.mileage}"`
+    ].join(','))
+  ].join('\n');
+
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.setAttribute('href', url);
+  link.setAttribute('download', `Arjun_Traders_Report_${document.getElementById('rpt-from-date').value}_to_${document.getElementById('rpt-to-date').value}.csv`);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  showToast('Report CSV downloaded.');
+}
+
 function initReportsDateRange() {
   const today = getTodayISODate();
   document.getElementById('rpt-from-date').value = today;
@@ -4101,6 +4542,8 @@ async function loadReportsData() {
   let grandTotal = {
     loaded: 0,
     sold: 0,
+    freeBottles: 0,
+    freeCost: 0,
     saleAmount: 0,
     cash: 0,
     phonepe: 0,
@@ -4108,19 +4551,32 @@ async function loadReportsData() {
     km: 0
   };
 
-  const rowsHtml = trips.map(trip => {
+  const autoFilterVal = document.getElementById('rpt-auto-filter')?.value;
+  const filteredTrips = autoFilterVal ? trips.filter(t => t.auto_id === autoFilterVal) : trips;
+
+  // Cache report data globally for CSV export
+  window.lastReportRows = [];
+
+  const rowsHtml = filteredTrips.map(trip => {
     const tripLines = linesMap[trip.id] || [];
     const pmt = pmtMap[trip.id] || {};
 
     let loaded = 0;
     let sold = 0;
     let amount = 0;
+    let freeBottles = 0;
+    let freeCost = 0;
 
     tripLines.forEach(l => {
       loaded += (l.load_qty || 0);
       const s = Math.max(0, (l.load_qty || 0) - (l.return_qty || 0));
       sold += s;
       amount += (s * (l.rate || 0));
+
+      const item = allItems.find(i => i.id === l.item_id);
+      const stats = getFreeBottleStatsForLine(item, l);
+      freeBottles += stats.effectiveCount;
+      freeCost += stats.totalCost;
     });
 
     const cash = pmt.cash || 0;
@@ -4135,6 +4591,8 @@ async function loadReportsData() {
 
     grandTotal.loaded += loaded;
     grandTotal.sold += sold;
+    grandTotal.freeBottles += freeBottles;
+    grandTotal.freeCost += freeCost;
     grandTotal.saleAmount += amount;
     grandTotal.cash += cash;
     grandTotal.phonepe += phonepe;
@@ -4144,13 +4602,31 @@ async function loadReportsData() {
     const diffColor = diff < 0 ? 'var(--red-text)' : (diff > 0 ? 'var(--grn-text)' : 'var(--txt-mut)');
     const diffLabel = diff < 0 ? ('Short ' + formatRupees(Math.abs(diff))) : (diff > 0 ? ('Extra ' + formatRupees(diff)) : 'Matched');
 
+    window.lastReportRows.push({
+      auto: trip.autos?.name || 'Auto',
+      date: trip.trip_date,
+      loaded,
+      sold,
+      freeBottles,
+      freeCost: freeCost.toFixed(2),
+      saleAmount: amount.toFixed(2),
+      cash: cash.toFixed(2),
+      phonepe: phonepe.toFixed(2),
+      credit: credit.toFixed(2),
+      diff: diff.toFixed(2),
+      km: km.toFixed(1),
+      mileage: mileage > 0 ? mileage.toFixed(1) : '-'
+    });
+
     return `
       <tr>
         <td><strong>${trip.autos?.name || 'Auto'}</strong></td>
         <td>${trip.trip_date}</td>
         <td>${loaded}</td>
         <td>${sold}</td>
-        <td style="color:var(--grn-text);">${formatRupees(amount)}</td>
+        <td style="color:#38bdf8;font-weight:700;">${freeBottles}</td>
+        <td style="color:var(--amber-text);">${formatRupees(freeCost)}</td>
+        <td style="color:var(--grn-text);font-weight:700;">${formatRupees(amount)}</td>
         <td>${formatRupees(cash)}</td>
         <td>${formatRupees(phonepe)}</td>
         <td>${formatRupees(credit)}</td>
@@ -4162,7 +4638,7 @@ async function loadReportsData() {
   }).join('');
 
   container.innerHTML = `
-    <div class="rpt-table-wrap">
+    <div class="table-responsive rpt-table-wrap">
       <table class="rpt-table">
         <thead>
           <tr>
@@ -4170,6 +4646,8 @@ async function loadReportsData() {
             <th>Date</th>
             <th>Loaded</th>
             <th>Sold</th>
+            <th>Free 1L</th>
+            <th>Promo Cost</th>
             <th>Sale Amt</th>
             <th>Cash</th>
             <th>PhonePe</th>
@@ -4181,10 +4659,12 @@ async function loadReportsData() {
         </thead>
         <tbody>
           ${rowsHtml}
-          <tr>
+          <tr style="font-weight:800;background:var(--card-sub);border-top:2px solid var(--bdr);">
             <td colspan="2">TOTAL</td>
             <td>${grandTotal.loaded}</td>
             <td>${grandTotal.sold}</td>
+            <td style="color:#38bdf8;">${grandTotal.freeBottles}</td>
+            <td style="color:var(--amber-text);">${formatRupees(grandTotal.freeCost)}</td>
             <td style="color:var(--grn-text);">${formatRupees(grandTotal.saleAmount)}</td>
             <td>${formatRupees(grandTotal.cash)}</td>
             <td>${formatRupees(grandTotal.phonepe)}</td>
@@ -4256,6 +4736,63 @@ document.addEventListener('keydown', (e) => {
 
 // Initialize on page load
 initAppTheme();
+
+// Offline Detection & Auto-sync alerts
+window.addEventListener('online', () => {
+  const banner = document.getElementById('offline-banner');
+  if (banner) banner.style.display = 'none';
+  showToast('Internet restored. Syncing data...');
+  if (activeTrip) triggerAutosaveDraft();
+});
+
+window.addEventListener('offline', () => {
+  const banner = document.getElementById('offline-banner');
+  if (banner) banner.style.display = 'block';
+});
+
 </script>
+
+  <!-- Free Bottle Adjustment Modal (Owner override for shop promo adjustments) -->
+  <div id="modal-free-adjust" class="modal-backdrop" style="display:none;">
+    <div class="card" style="width:100%;max-width:440px;background:var(--card-bg);margin:16px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+        <h3 style="font-size:var(--fs-lg);" id="modal-free-item-name">Adjust Free Water Bottles</h3>
+        <button class="btn btn-xs btn-ghost" onclick="closeFreeAdjustModal()">✕</button>
+      </div>
+      <p style="font-size:var(--fs-sm);color:var(--txt-mut);margin-bottom:12px;" id="modal-free-desc">
+        Customize the 1-Litre water bottles given to shops for this trip line.
+      </p>
+      <input type="hidden" id="modal-free-item-id" />
+      <div class="form-group">
+        <label>Adjusted Free 1L Bottles Count:</label>
+        <input type="number" id="inp-free-adjusted-val" class="input-lg" min="0" step="1" style="font-size:24px;font-weight:700;text-align:center;" />
+      </div>
+      <div style="display:flex;gap:10px;margin-top:16px;">
+        <button class="btn btn-secondary" style="flex:1;" onclick="resetFreeToRule()">Reset to Rule</button>
+        <button class="btn btn-primary" style="flex:1;" onclick="saveFreeBottleAdjustment()">Save Adjustment</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Rename Shop Modal (Edge Case: Shop added by mistake) -->
+  <div id="modal-rename-shop" class="modal-backdrop" style="display:none;">
+    <div class="card" style="width:100%;max-width:420px;background:var(--card-bg);margin:16px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+        <h3 style="font-size:var(--fs-lg);">Rename Shop</h3>
+        <button class="btn btn-xs btn-ghost" onclick="closeRenameShopModal()">✕</button>
+      </div>
+      <div id="rename-shop-err" class="err-box" style="display:none;"></div>
+      <input type="hidden" id="rename-shop-id" />
+      <div class="form-group">
+        <label>Shop Name:</label>
+        <input type="text" id="rename-shop-name-input" class="input-lg" placeholder="Enter corrected shop name..." />
+      </div>
+      <div style="display:flex;gap:10px;margin-top:16px;">
+        <button class="btn btn-secondary" style="flex:1;" onclick="closeRenameShopModal()">Cancel</button>
+        <button class="btn btn-primary" style="flex:1;" onclick="submitRenameShop()">Save Name</button>
+      </div>
+    </div>
+  </div>
+
 </body>
 </html>
