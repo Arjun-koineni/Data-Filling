@@ -10,6 +10,7 @@
 -- 5. Allow Staff to ADD shops on routes, but restrict Shop Renames/Deletes to Owner only.
 -- 6. Allow Staff to RECORD dues/payments, but restrict Edit/Delete of ledger to Owner only.
 -- 7. Allow Staff to create/fill daily trips, but restrict Trip Deletion to Owner only.
+-- 8. Clean up old permissive "members only" policies that allowed ALL actions.
 -- ====================================================================
 
 -- --------------------------------------------------------------------
@@ -41,6 +42,7 @@ ON CONFLICT (key) DO NOTHING;
 -- --------------------------------------------------------------------
 ALTER TABLE settings ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "members only" ON settings;
 DROP POLICY IF EXISTS "Allow members write settings" ON settings;
 DROP POLICY IF EXISTS "Allow members read settings" ON settings;
 DROP POLICY IF EXISTS "Owner inserts settings" ON settings;
@@ -72,6 +74,7 @@ CREATE POLICY "Owner deletes settings" ON settings
 -- --------------------------------------------------------------------
 ALTER TABLE items ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "members only" ON items;
 DROP POLICY IF EXISTS "Allow all members manage items" ON items;
 DROP POLICY IF EXISTS "Allow members read items" ON items;
 DROP POLICY IF EXISTS "Owner inserts items" ON items;
@@ -103,6 +106,7 @@ CREATE POLICY "Owner deletes items" ON items
 -- --------------------------------------------------------------------
 ALTER TABLE autos ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "members only" ON autos;
 DROP POLICY IF EXISTS "Allow all members manage autos" ON autos;
 DROP POLICY IF EXISTS "Allow members read autos" ON autos;
 DROP POLICY IF EXISTS "Owner inserts autos" ON autos;
@@ -134,6 +138,7 @@ CREATE POLICY "Owner deletes autos" ON autos
 -- --------------------------------------------------------------------
 ALTER TABLE shops ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "members only" ON shops;
 DROP POLICY IF EXISTS "Allow all members manage shops" ON shops;
 DROP POLICY IF EXISTS "Allow members read shops" ON shops;
 DROP POLICY IF EXISTS "Allow members insert shops" ON shops;
@@ -167,6 +172,7 @@ CREATE POLICY "Owner deletes shops" ON shops
 -- --------------------------------------------------------------------
 ALTER TABLE dues ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "members only" ON dues;
 DROP POLICY IF EXISTS "Allow all members manage dues" ON dues;
 DROP POLICY IF EXISTS "Allow members read dues" ON dues;
 DROP POLICY IF EXISTS "Allow members insert dues" ON dues;
@@ -200,6 +206,7 @@ CREATE POLICY "Owner deletes dues" ON dues
 ALTER TABLE trips ENABLE ROW LEVEL SECURITY;
 ALTER TABLE trip_lines ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "members only" ON trips;
 DROP POLICY IF EXISTS "Allow all members manage trips" ON trips;
 DROP POLICY IF EXISTS "Allow members read trips" ON trips;
 DROP POLICY IF EXISTS "Allow members insert trips" ON trips;
@@ -225,6 +232,7 @@ CREATE POLICY "Owner deletes trips" ON trips
   USING (EXISTS (SELECT 1 FROM profiles WHERE profiles.id = auth.uid() AND profiles.role = 'owner'));
 
 -- Trip Lines
+DROP POLICY IF EXISTS "members only" ON trip_lines;
 DROP POLICY IF EXISTS "Allow all members manage trip_lines" ON trip_lines;
 DROP POLICY IF EXISTS "Allow members read trip_lines" ON trip_lines;
 DROP POLICY IF EXISTS "Allow members insert trip_lines" ON trip_lines;
