@@ -33,12 +33,31 @@ BEGIN
       USING (EXISTS (SELECT 1 FROM profiles WHERE profiles.id = auth.uid()));
   END IF;
 
+  DROP POLICY IF EXISTS "Allow members write settings" ON settings;
+
   IF NOT EXISTS (
-    SELECT 1 FROM pg_policies WHERE tablename = 'settings' AND policyname = 'Allow members write settings'
+    SELECT 1 FROM pg_policies WHERE tablename = 'settings' AND policyname = 'Owner inserts settings'
   ) THEN
-    CREATE POLICY "Allow members write settings" ON settings
-      FOR ALL TO authenticated
-      USING (EXISTS (SELECT 1 FROM profiles WHERE profiles.id = auth.uid()));
+    CREATE POLICY "Owner inserts settings" ON settings
+      FOR INSERT TO authenticated
+      WITH CHECK (EXISTS (SELECT 1 FROM profiles WHERE profiles.id = auth.uid() AND profiles.role = 'owner'));
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies WHERE tablename = 'settings' AND policyname = 'Owner updates settings'
+  ) THEN
+    CREATE POLICY "Owner updates settings" ON settings
+      FOR UPDATE TO authenticated
+      USING (EXISTS (SELECT 1 FROM profiles WHERE profiles.id = auth.uid() AND profiles.role = 'owner'))
+      WITH CHECK (EXISTS (SELECT 1 FROM profiles WHERE profiles.id = auth.uid() AND profiles.role = 'owner'));
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies WHERE tablename = 'settings' AND policyname = 'Owner deletes settings'
+  ) THEN
+    CREATE POLICY "Owner deletes settings" ON settings
+      FOR DELETE TO authenticated
+      USING (EXISTS (SELECT 1 FROM profiles WHERE profiles.id = auth.uid() AND profiles.role = 'owner'));
   END IF;
 END $$;
 

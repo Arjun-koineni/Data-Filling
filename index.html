@@ -1905,6 +1905,21 @@ window.addEventListener('offline', () => {
         ℹ️ Staff mode: Viewing predefined rates. (Owner can edit values).
       </div>
 
+      <!-- Promotional 1L Water Bottle Cost Setting Card -->
+      <div id="setting-bottle-cost-card" class="card" style="margin-bottom:14px;padding:14px;border:1px solid var(--bdr);background:var(--card-bg);">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
+          <div>
+            <div style="font-weight:700;font-size:14px;">Promotional 1L Water Bottle Cost</div>
+            <div style="font-size:12px;color:var(--txt-mut);">Business expense for free bottles given to shops (Audit only)</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span style="font-weight:700;font-size:16px;">₹</span>
+            <input type="number" id="inp-setting-bottle-cost" step="0.01" style="width:90px;padding:6px 10px;font-size:15px;font-weight:700;text-align:right;" />
+            <button class="btn btn-sm btn-primary" id="btn-save-bottle-cost" onclick="saveBottleCostSetting()">Save Cost</button>
+          </div>
+        </div>
+      </div>
+
       <!-- Predefined Items List (Responsive Grid on Desktop) -->
       <div class="catalog-grid" id="catalog-items-container"></div>
     </div>
@@ -1953,6 +1968,7 @@ window.addEventListener('offline', () => {
         </div>
       </div>
       <div class="topbar-actions">
+        <button class="topbar-btn" id="btn-rename-shop-topbar" onclick="openRenameShopModal(selectedShopForDetail?.id, selectedShopForDetail?.name)" title="Rename Shop (Owner Only)" style="display:none;font-size:16px;">✏️</button>
         <button class="topbar-btn" onclick="shareShopLedgerWhatsApp()" title="Share Ledger via WhatsApp" style="color:#25D366;font-size:20px;">📲</button>
       </div>
     </div>
@@ -2310,6 +2326,10 @@ async function fetchAppSettings() {
 }
 
 async function saveBottleCostSetting() {
+  if (currentProfile?.role !== 'owner') {
+    alert('Permission denied: Only the owner can change the bottle cost setting.');
+    return;
+  }
   const inp = document.getElementById('inp-setting-bottle-cost');
   const val = parseFloat(inp?.value);
   if (isNaN(val) || val <= 0) {
@@ -2470,9 +2490,16 @@ async function submitRenameShop() {
   }
   const s = allShops.find(shop => shop.id === id);
   if (s) s.name = name;
+  if (selectedShopForDetail && selectedShopForDetail.id === id) {
+    selectedShopForDetail.name = name;
+    const nameEl = document.getElementById('shop-detail-name');
+    if (nameEl) nameEl.textContent = name;
+  }
   closeRenameShopModal();
   showToast('Shop renamed successfully.');
-  loadShopsList();
+  if (typeof loadShopsListScreen === 'function') {
+    loadShopsListScreen();
+  }
 }
 
 const GROUP_DEFAULT_UNITS = {
@@ -2705,7 +2732,7 @@ async function loadUserProfileAndBootstrap() {
     dhBadge.className = 'badge ' + (currentProfile.role === 'owner' ? 'badge-out' : 'badge-draft');
   }
 
-  await Promise.all([fetchAutos(), fetchCatalogItems(), fetchShops()]);
+  await Promise.all([fetchAutos(), fetchCatalogItems(), fetchShops(), fetchAppSettings()]);
   hideLoading();
   initAppTheme();
   showScreen('home');
@@ -3767,6 +3794,16 @@ function loadCatalogMenuScreen() {
       : 'ℹ️ <strong>Staff mode:</strong> Viewing predefined rates per case &amp; per unit. (Read only)';
   }
 
+  const bottleCostInp = document.getElementById('inp-setting-bottle-cost');
+  const bottleCostBtn = document.getElementById('btn-save-bottle-cost');
+  if (bottleCostInp) {
+    bottleCostInp.value = currentBottleCost.toFixed(2);
+    bottleCostInp.disabled = !isOwner;
+  }
+  if (bottleCostBtn) {
+    bottleCostBtn.style.display = isOwner ? 'block' : 'none';
+  }
+
   renderCategoryFilterPills();
   renderCatalogItemsList();
 }
@@ -4070,6 +4107,10 @@ async function openShopLedger(shop, currentDue) {
   document.getElementById('shop-detail-name').textContent = shop.name;
   document.getElementById('shop-detail-due-val').textContent = formatRupees(currentDue);
   document.getElementById('recv-payment-card').style.display = 'none';
+
+  const isOwner = currentProfile?.role === 'owner';
+  const renameBtn = document.getElementById('btn-rename-shop-topbar');
+  if (renameBtn) renameBtn.style.display = isOwner ? 'inline-flex' : 'none';
 
   showScreen('shop-detail');
   showLoading('Loading ledger...');
