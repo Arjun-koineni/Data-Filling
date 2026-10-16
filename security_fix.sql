@@ -3,16 +3,41 @@
 -- Run this in Supabase Dashboard -> SQL Editor -> Run
 --
 -- Objective:
--- 1. Restrict Settings (1L promotional bottle cost) to Owner only (Staff read-only).
--- 2. Restrict Item Catalog & Predefined Rates to Owner only (Staff read-only).
--- 3. Restrict Vehicle fleet (autos) to Owner only (Staff read-only).
--- 4. Allow Staff to ADD shops on routes, but restrict Shop Renames/Deletes to Owner only.
--- 5. Allow Staff to RECORD dues/payments, but restrict Edit/Delete of ledger to Owner only.
--- 6. Allow Staff to create/fill daily trips, but restrict Trip Deletion to Owner only.
+-- 1. Ensure `settings` table exists and initialize bottle_cost.
+-- 2. Restrict Settings (1L promotional bottle cost) to Owner only (Staff read-only).
+-- 3. Restrict Item Catalog & Predefined Rates to Owner only (Staff read-only).
+-- 4. Restrict Vehicle fleet (autos) to Owner only (Staff read-only).
+-- 5. Allow Staff to ADD shops on routes, but restrict Shop Renames/Deletes to Owner only.
+-- 6. Allow Staff to RECORD dues/payments, but restrict Edit/Delete of ledger to Owner only.
+-- 7. Allow Staff to create/fill daily trips, but restrict Trip Deletion to Owner only.
 -- ====================================================================
 
 -- --------------------------------------------------------------------
--- 1. SETTINGS TABLE
+-- 0. ENSURE PREREQUISITE COLUMNS & SETTINGS TABLE EXIST
+-- --------------------------------------------------------------------
+ALTER TABLE items 
+  ADD COLUMN IF NOT EXISTS free_bottles_per_case NUMERIC NOT NULL DEFAULT 0;
+
+ALTER TABLE trip_lines 
+  ADD COLUMN IF NOT EXISTS free_per_case_used NUMERIC,
+  ADD COLUMN IF NOT EXISTS free_adjusted INT,
+  ADD COLUMN IF NOT EXISTS bottle_cost_used NUMERIC;
+
+CREATE TABLE IF NOT EXISTS settings (
+  key TEXT PRIMARY KEY,
+  value TEXT NOT NULL,
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+GRANT ALL ON TABLE settings TO authenticated;
+
+INSERT INTO settings (key, value)
+VALUES ('bottle_cost', '10.40')
+ON CONFLICT (key) DO NOTHING;
+
+
+-- --------------------------------------------------------------------
+-- 1. SETTINGS TABLE POLICIES
 -- --------------------------------------------------------------------
 ALTER TABLE settings ENABLE ROW LEVEL SECURITY;
 
